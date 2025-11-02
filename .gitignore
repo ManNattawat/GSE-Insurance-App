@@ -17,3 +17,19 @@ web-build/
 *.log
 *.tmp
 *.temp
+
+# Android
+android/
+*.apk
+*.aab
+*.keystore
+
+# iOS
+ios/
+
+# EAS
+.eas/
+
+# Environment
+.env
+.env.local

@@ -43,6 +43,11 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x android/gradlew
     
+    - name: Bundle JavaScript for Release
+      run: |
+        # Bundle JavaScript สำหรับ Release build
+        npx expo export:embed --platform android
+    
     - name: Build APK (Debug)
       run: |
         cd android

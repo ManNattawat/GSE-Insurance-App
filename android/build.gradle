@@ -1,4 +1,5 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
+// Self-reliant: ระบุ version ทั้งหมดเอง ไม่พึ่ง plugin จัดการให้
 
 buildscript {
   ext {
@@ -8,14 +9,16 @@ buildscript {
     targetSdkVersion = 34
     kotlinVersion = "2.0.21"
     ndkVersion = "26.1.10909125"
+    androidGradlePluginVersion = "8.7.3"
+    reactNativeGradlePluginVersion = "0.79.5"
   }
   repositories {
     google()
     mavenCentral()
   }
   dependencies {
-    classpath('com.android.tools.build:gradle')
-    classpath('com.facebook.react:react-native-gradle-plugin')
+    classpath("com.android.tools.build:gradle:$androidGradlePluginVersion")
+    classpath("com.facebook.react:react-native-gradle-plugin:$reactNativeGradlePluginVersion")
     classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
   }
 }
@@ -41,5 +44,5 @@ allprojects {
   }
 }
 
-// Self-reliant: ลบ Expo plugin ออก ใช้ React Native โดยตรง
-apply plugin: "com.facebook.react.rootproject"
+// Self-reliant: ไม่ใช้ rootproject plugin จัดการให้ ใช้วิธีตรงไปตรงมา
+// apply plugin: "com.facebook.react.rootproject"  // ไม่ใช้ plugin ที่จัดการให้อัตโนมัติ

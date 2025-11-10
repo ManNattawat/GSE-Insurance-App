@@ -168,14 +168,17 @@ export async function saveCustomer(customerData: CustomerData, createdBy?: strin
   try {
     const policyData = mapCustomerDataToPolicy(customerData, createdBy);
     
+    // ลองใช้ table name โดยตรง (ไม่ใช้ schema prefix)
     const { data, error } = await supabase
-      .from('insurance.policies')
+      .from('policies')
       .insert([policyData])
       .select()
       .single();
     
     if (error) {
-      throw error;
+      // ถ้า error อาจเป็นเพราะ schema หรือ RLS
+      console.error('Supabase insert error:', error);
+      throw new Error(`ไม่สามารถบันทึกข้อมูลได้: ${error.message}`);
     }
     
     return {
@@ -187,7 +190,7 @@ export async function saveCustomer(customerData: CustomerData, createdBy?: strin
     console.error('Error saving customer:', error);
     return {
       success: false,
-      error: error.message,
+      error: error.message || 'ไม่สามารถบันทึกข้อมูลได้',
     };
   }
 }
@@ -197,24 +200,40 @@ export async function saveCustomer(customerData: CustomerData, createdBy?: strin
  */
 export async function getAllCustomers() {
   try {
-    const { data, error } = await supabase
-      .from('insurance.policies')
-      .select('*')
-      .order('created_at', { ascending: false });
+    // ใช้ RPC หรือ query โดยตรง
+    const { data, error } = await supabase.rpc('exec_sql', {
+      sql_query: `
+        SELECT * FROM insurance.policies 
+        ORDER BY created_at DESC
+      `
+    });
     
     if (error) {
-      throw error;
+      // ลองใช้วิธีอื่น: query โดยตรง
+      const { data: directData, error: directError } = await supabase
+        .from('policies')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (directError) {
+        throw directError;
+      }
+      
+      return {
+        success: true,
+        data: directData?.map(mapPolicyToCustomerData) || [],
+      };
     }
     
     return {
       success: true,
-      data: data?.map(mapPolicyToCustomerData) || [],
+      data: Array.isArray(data) ? data.map(mapPolicyToCustomerData) : [],
     };
   } catch (error: any) {
     console.error('Error fetching customers:', error);
     return {
       success: false,
-      error: error.message,
+      error: error.message || 'ไม่สามารถดึงข้อมูลได้',
       data: [],
     };
   }
@@ -226,7 +245,7 @@ export async function getAllCustomers() {
 export async function getCustomerById(id: string) {
   try {
     const { data, error } = await supabase
-      .from('insurance.policies')
+      .from('policies')
       .select('*')
       .eq('id', id)
       .single();
@@ -243,7 +262,7 @@ export async function getCustomerById(id: string) {
     console.error('Error fetching customer:', error);
     return {
       success: false,
-      error: error.message,
+      error: error.message || 'ไม่สามารถดึงข้อมูลได้',
     };
   }
 }
@@ -254,7 +273,7 @@ export async function getCustomerById(id: string) {
 export async function searchCustomers(query: string) {
   try {
     const { data, error } = await supabase
-      .from('insurance.policies')
+      .from('policies')
       .select('*')
       .or(`customer_name.ilike.%${query}%,phone.ilike.%${query}%,license_plate.ilike.%${query}%`)
       .order('created_at', { ascending: false });
@@ -271,7 +290,7 @@ export async function searchCustomers(query: string) {
     console.error('Error searching customers:', error);
     return {
       success: false,
-      error: error.message,
+      error: error.message || 'ไม่สามารถค้นหาข้อมูลได้',
       data: [],
     };
   }
@@ -285,7 +304,7 @@ export async function updateCustomer(id: string, customerData: CustomerData) {
     const policyData = mapCustomerDataToPolicy(customerData);
     
     const { data, error } = await supabase
-      .from('insurance.policies')
+      .from('policies')
       .update(policyData)
       .eq('id', id)
       .select()
@@ -303,7 +322,7 @@ export async function updateCustomer(id: string, customerData: CustomerData) {
     console.error('Error updating customer:', error);
     return {
       success: false,
-      error: error.message,
+      error: error.message || 'ไม่สามารถอัปเดตข้อมูลได้',
     };
   }
 }
@@ -314,7 +333,7 @@ export async function updateCustomer(id: string, customerData: CustomerData) {
 export async function deleteCustomer(id: string) {
   try {
     const { error } = await supabase
-      .from('insurance.policies')
+      .from('policies')
       .delete()
       .eq('id', id);
     
@@ -329,7 +348,7 @@ export async function deleteCustomer(id: string) {
     console.error('Error deleting customer:', error);
     return {
       success: false,
-      error: error.message,
+      error: error.message || 'ไม่สามารถลบข้อมูลได้',
     };
   }
 }

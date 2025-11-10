@@ -13,21 +13,12 @@ buildscript {
   repositories {
     google()
     mavenCentral()
-    // Self-reliant: เพิ่ม includeBuild repository เพื่อให้ resolve plugin ได้
-    maven {
-      def reactNativeGradlePlugin = new File(
-        providers.exec {
-          workingDir(rootDir)
-          commandLine("node", "--print", "require.resolve('@react-native/gradle-plugin/package.json', { paths: [require.resolve('react-native/package.json')] })")
-        }.standardOutput.asText.get().trim()
-      ).getParentFile().absolutePath
-      url = uri(reactNativeGradlePlugin)
-    }
   }
   dependencies {
     // Self-reliant: ระบุ version ของ Android Gradle Plugin เอง
     classpath("com.android.tools.build:gradle:8.7.3")
-    // react-native-gradle-plugin จะถูก resolve จาก includeBuild
+    // react-native-gradle-plugin จะถูก resolve โดย rootproject plugin จาก includeBuild ใน settings.gradle
+    // ไม่ต้องระบุ version เพราะ rootproject plugin จะจัดการให้
     classpath("com.facebook.react:react-native-gradle-plugin")
     classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
   }

@@ -57,7 +57,8 @@ react {
     // hermesFlags = ["-O", "-output-source-map"]
 
     /* Autolinking */
-    // Self-reliant: ไม่ใช้ autolinking ระบุ dependencies เองใน dependencies block
+    // Self-reliant: ต้องเรียก autolinkLibrariesWithApp() เพื่อให้ rootproject plugin resolve gradle plugin ได้
+    autolinkLibrariesWithApp()
 }
 
 /**

@@ -44,5 +44,5 @@ allprojects {
   }
 }
 
-// Self-reliant: ไม่ใช้ rootproject plugin จัดการให้ ใช้วิธีตรงไปตรงมา
-// apply plugin: "com.facebook.react.rootproject"  // ไม่ใช้ plugin ที่จัดการให้อัตโนมัติ
+// Self-reliant: ใช้ rootproject plugin เพื่อ resolve react-native-gradle-plugin แต่ไม่ใช้ autolinking
+apply plugin: "com.facebook.react.rootproject"

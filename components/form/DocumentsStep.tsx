@@ -1,7 +1,9 @@
+// Self-reliant: ใช้ imagePickerService wrapper แทน expo-image-picker
 import React from 'react';
 import { View, StyleSheet, Image, Alert } from 'react-native';
 import { Button, Text, Card } from 'react-native-paper';
-import * as ImagePicker from 'expo-image-picker';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import imagePickerService from '../../services/imagePickerService';
 import type { Documents } from '../../types';
 
 interface Props {
@@ -11,15 +13,15 @@ interface Props {
 
 export default function DocumentsStep({ data, onChange }: Props) {
   const pickImage = async (field: keyof Documents) => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const { status } = await imagePickerService.requestMediaLibraryPermissionsAsync();
     
     if (status !== 'granted') {
       Alert.alert('ต้องใช้สิทธิ์', 'ต้องการเข้าถึงรูปภาพเพื่ออัปโหลดเอกสาร');
       return;
     }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    const result = await imagePickerService.launchImageLibraryAsync({
+      mediaTypes: 'images',
       allowsEditing: true,
       aspect: [4, 3],
       quality: 0.8,
@@ -34,14 +36,14 @@ export default function DocumentsStep({ data, onChange }: Props) {
   };
 
   const takePhoto = async (field: keyof Documents) => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    const { status } = await imagePickerService.requestCameraPermissionsAsync();
     
     if (status !== 'granted') {
       Alert.alert('ต้องใช้สิทธิ์', 'ต้องการเข้าถึงกล้องเพื่อถ่ายรูปเอกสาร');
       return;
     }
 
-    const result = await ImagePicker.launchCameraAsync({
+    const result = await imagePickerService.launchCameraAsync({
       allowsEditing: true,
       aspect: [4, 3],
       quality: 0.8,
@@ -89,7 +91,7 @@ export default function DocumentsStep({ data, onChange }: Props) {
             mode="outlined"
             onPress={() => showImageOptions('idCardImage')}
             style={styles.button}
-            icon="camera"
+            icon={() => <MaterialCommunityIcons name="camera" size={20} color="#2196F3" />}
           >
             {data?.idCardImage ? 'เปลี่ยนรูป' : 'อัปโหลด'}
           </Button>
@@ -112,7 +114,7 @@ export default function DocumentsStep({ data, onChange }: Props) {
             mode="outlined"
             onPress={() => showImageOptions('vehicleRegistration')}
             style={styles.button}
-            icon="camera"
+            icon={() => <MaterialCommunityIcons name="camera" size={20} color="#2196F3" />}
           >
             {data?.vehicleRegistration ? 'เปลี่ยนรูป' : 'อัปโหลด'}
           </Button>
@@ -135,7 +137,7 @@ export default function DocumentsStep({ data, onChange }: Props) {
             mode="outlined"
             onPress={() => showImageOptions('drivingLicense')}
             style={styles.button}
-            icon="camera"
+            icon={() => <MaterialCommunityIcons name="camera" size={20} color="#2196F3" />}
           >
             {data?.drivingLicense ? 'เปลี่ยนรูป' : 'อัปโหลด'}
           </Button>
@@ -158,7 +160,7 @@ export default function DocumentsStep({ data, onChange }: Props) {
             mode="outlined"
             onPress={() => showImageOptions('previousPolicy')}
             style={styles.button}
-            icon="camera"
+            icon={() => <MaterialCommunityIcons name="camera" size={20} color="#2196F3" />}
           >
             {data?.previousPolicy ? 'เปลี่ยนรูป' : 'อัปโหลด'}
           </Button>

@@ -1,5 +1,6 @@
-import * as FileSystem from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
+// Self-reliant: ใช้ wrapper services แทน expo-file-system และ expo-sharing
+import fileService from '../services/fileService';
+import sharingService from '../services/sharingService';
 import type { CustomerData } from '../types';
 
 /**
@@ -71,17 +72,17 @@ export async function exportToCSV(
   try {
     const csvContent = formatCustomerDataForExport(customers);
     const fileName = `รายชื่อลูกค้าใหม่_ประกันรถยนต์_${month || 'เดือน'}_${new Date().getTime()}.csv`;
-    const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+    const fileUri = `${fileService.documentDirectory}/${fileName}`;
 
     // Write file
-    await FileSystem.writeAsStringAsync(fileUri, csvContent, {
-      encoding: FileSystem.EncodingType.UTF8,
+    await fileService.writeAsStringAsync(fileUri, csvContent, {
+      encoding: 'utf8',
     });
 
     // Check if sharing is available
-    const isAvailable = await Sharing.isAvailableAsync();
+    const isAvailable = await sharingService.isAvailableAsync();
     if (isAvailable) {
-      await Sharing.shareAsync(fileUri, {
+      await sharingService.shareAsync(fileUri, {
         mimeType: 'text/csv',
         dialogTitle: 'ส่งออกข้อมูลลูกค้า',
       });

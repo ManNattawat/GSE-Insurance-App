@@ -9,6 +9,15 @@ pluginManagement {
   includeBuild(reactNativeGradlePlugin)
 }
 
+plugins {
+  id("com.facebook.react.settings")
+}
+
+// Self-reliant: ไม่ใช้ autolinking ระบุ dependencies เอง
+// extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
+//   ex.autolinkLibrariesFromCommand()
+// }
+
 rootProject.name = 'GSE Insurance App'
 
 include ':app'

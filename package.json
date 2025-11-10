@@ -4,12 +4,15 @@
   "main": "index.js",
   "scripts": {
     "start": "expo start --localhost --android",
+    "start:tunnel": "expo start --tunnel --android",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "prebuild": "expo prebuild",
     "prebuild:android": "expo prebuild --platform android",
     "build:android": "cd android && gradlew.bat assembleRelease",
-    "build:apk": "npm run prebuild:android && npm run build:android"
+    "build:apk": "npm run prebuild:android && npm run build:android",
+    "build:debug": "npm run prebuild:android && cd android && gradlew.bat assembleDebug",
+    "install:debug": "npm run build:debug && cd android && gradlew.bat installDebug"
   },
   "dependencies": {
     "@babel/runtime": "^7.28.3",

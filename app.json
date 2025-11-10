@@ -44,6 +44,14 @@
         {
           "photosPermission": "แอพต้องการเข้าถึงรูปภาพเพื่ออัปโหลดเอกสารประกอบการสมัครประกัน"
         }
+      ],
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "node_modules/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf"
+          ]
+        }
       ]
     ]
   }

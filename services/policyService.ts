@@ -168,23 +168,76 @@ export async function saveCustomer(customerData: CustomerData, createdBy?: strin
   try {
     const policyData = mapCustomerDataToPolicy(customerData, createdBy);
     
-    // ลองใช้ table name โดยตรง (ไม่ใช้ schema prefix)
-    const { data, error } = await supabase
-      .from('policies')
-      .insert([policyData])
-      .select()
-      .single();
+    // ใช้ RPC exec_sql เพื่อ insert ข้อมูลเข้า insurance.policies
+    // ต้อง escape single quotes ใน string values
+    const escapeSql = (str: string | null | undefined) => {
+      if (!str) return '';
+      return String(str).replace(/'/g, "''");
+    };
+    
+    const { data, error } = await supabase.rpc('exec_sql', {
+      sql_query: `
+        INSERT INTO insurance.policies (
+          policy_number, customer_name, id_card_number, phone, email, line_id, address,
+          first_name, last_name, vehicle_brand, vehicle_model, vehicle_sub_model,
+          vehicle_year, license_plate, vin, engine_number, vehicle_color, engine_size,
+          usage_type, vehicle_type, vehicle_type_other, vehicle_accessories,
+          driving_license_years, driving_experience, accident_history, claim_history,
+          number_of_drivers, main_driver_age, insurance_type, coverage_amount,
+          coverage_period, additional_coverage_flood, additional_coverage_theft,
+          additional_coverage_medical, additional_coverage_personal_accident,
+          previous_insurance_company, previous_insurance_type, previous_premium,
+          previous_coverage_service_center, previous_coverage_garage,
+          previous_coverage_flood, previous_coverage_fire,
+          proposed_insurance_company, proposed_premium, proposed_highlights,
+          promotion_discount, policy_status, salesperson_name, salesperson_phone,
+          notes, status, created_by
+        ) VALUES (
+          '${escapeSql(policyData.policy_number)}', '${escapeSql(policyData.customer_name)}', 
+          '${escapeSql(policyData.id_card_number)}', '${escapeSql(policyData.phone)}',
+          '${escapeSql(policyData.email)}', '${escapeSql(policyData.line_id)}',
+          '${escapeSql(policyData.address)}', '${escapeSql(policyData.first_name)}',
+          '${escapeSql(policyData.last_name)}', '${escapeSql(policyData.vehicle_brand)}',
+          '${escapeSql(policyData.vehicle_model)}', '${escapeSql(policyData.vehicle_sub_model)}',
+          ${policyData.vehicle_year || null}, '${escapeSql(policyData.license_plate)}',
+          '${escapeSql(policyData.vin)}', '${escapeSql(policyData.engine_number)}',
+          '${escapeSql(policyData.vehicle_color)}', '${escapeSql(policyData.engine_size)}',
+          '${escapeSql(policyData.usage_type || 'personal')}', '${escapeSql(policyData.vehicle_type)}',
+          '${escapeSql(policyData.vehicle_type_other)}', '${escapeSql(policyData.vehicle_accessories)}',
+          '${escapeSql(policyData.driving_license_years)}', '${escapeSql(policyData.driving_experience)}',
+          ${policyData.accident_history || false}, ${policyData.claim_history || false},
+          '${escapeSql(policyData.number_of_drivers)}', '${escapeSql(policyData.main_driver_age)}',
+          '${escapeSql(policyData.insurance_type || 'class1')}', ${policyData.coverage_amount || 0},
+          ${policyData.coverage_period || null}, ${policyData.additional_coverage_flood || false},
+          ${policyData.additional_coverage_theft || false}, ${policyData.additional_coverage_medical || false},
+          ${policyData.additional_coverage_personal_accident || false},
+          '${escapeSql(policyData.previous_insurance_company)}', '${escapeSql(policyData.previous_insurance_type)}',
+          ${policyData.previous_premium || null}, ${policyData.previous_coverage_service_center || false},
+          ${policyData.previous_coverage_garage || false}, ${policyData.previous_coverage_flood || false},
+          ${policyData.previous_coverage_fire || false}, '${escapeSql(policyData.proposed_insurance_company)}',
+          ${policyData.proposed_premium || null}, '${escapeSql(policyData.proposed_highlights)}',
+          '${escapeSql(policyData.promotion_discount)}', '${escapeSql(policyData.policy_status || 'new')}',
+          '${escapeSql(policyData.salesperson_name)}', '${escapeSql(policyData.salesperson_phone)}',
+          '${escapeSql(policyData.notes)}', '${escapeSql(policyData.status || 'active')}',
+          '${escapeSql(policyData.created_by || 'App User')}'
+        )
+        RETURNING *;
+      `
+    });
     
     if (error) {
-      // ถ้า error อาจเป็นเพราะ schema หรือ RLS
       console.error('Supabase insert error:', error);
       throw new Error(`ไม่สามารถบันทึกข้อมูลได้: ${error.message}`);
     }
     
+    if (!data || data.length === 0) {
+      throw new Error('ไม่สามารถบันทึกข้อมูลได้: ไม่มีข้อมูลที่ส่งกลับมา');
+    }
+    
     return {
       success: true,
-      data: mapPolicyToCustomerData(data),
-      id: data.id,
+      data: mapPolicyToCustomerData(data[0]),
+      id: data[0].id,
     };
   } catch (error: any) {
     console.error('Error saving customer:', error);
@@ -200,7 +253,7 @@ export async function saveCustomer(customerData: CustomerData, createdBy?: strin
  */
 export async function getAllCustomers() {
   try {
-    // ใช้ RPC หรือ query โดยตรง
+    // ใช้ RPC function เพื่อเข้าถึง insurance schema
     const { data, error } = await supabase.rpc('exec_sql', {
       sql_query: `
         SELECT * FROM insurance.policies 
@@ -209,19 +262,20 @@ export async function getAllCustomers() {
     });
     
     if (error) {
-      // ลองใช้วิธีอื่น: query โดยตรง
-      const { data: directData, error: directError } = await supabase
-        .from('policies')
+      console.error('RPC error:', error);
+      // ถ้า RPC ไม่ได้ ลองใช้ view ใน public schema (ถ้ามี)
+      const { data: viewData, error: viewError } = await supabase
+        .from('policies_full')
         .select('*')
         .order('created_at', { ascending: false });
       
-      if (directError) {
-        throw directError;
+      if (viewError) {
+        throw new Error(`ไม่สามารถดึงข้อมูลได้: ${error.message}`);
       }
       
       return {
         success: true,
-        data: directData?.map(mapPolicyToCustomerData) || [],
+        data: viewData?.map(mapPolicyToCustomerData) || [],
       };
     }
     

@@ -13,10 +13,11 @@ plugins {
   id("com.facebook.react.settings")
 }
 
-// Self-reliant: ไม่ใช้ autolinking ระบุ dependencies เอง
-// extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
-//   ex.autolinkLibrariesFromCommand()
-// }
+// Self-reliant: ต้อง configure extension แต่ไม่ใช้ autolinking
+extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
+  // ไม่เรียก autolinkLibrariesFromCommand() เพื่อไม่ใช้ autolinking
+  // แต่ต้อง configure extension เพื่อให้ plugin resolve ได้
+}
 
 rootProject.name = 'GSE Insurance App'
 

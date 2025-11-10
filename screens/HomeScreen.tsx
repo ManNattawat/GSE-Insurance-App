@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Button, Card, Text } from 'react-native-paper';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 
@@ -34,7 +35,7 @@ export default function HomeScreen() {
           mode="contained"
           onPress={() => navigation.navigate('QuickQuote')}
           style={[styles.button, styles.primaryButton]}
-          icon="calculator"
+          icon={() => <MaterialCommunityIcons name="calculator" size={20} color="#fff" />}
         >
           เช็คเบี้ยประกันฟรี
         </Button>
@@ -43,7 +44,7 @@ export default function HomeScreen() {
           mode="contained"
           onPress={() => navigation.navigate('InsuranceForm', { status: 'new' })}
           style={styles.button}
-          icon="file-document-edit"
+          icon={() => <MaterialCommunityIcons name="file-document-edit" size={20} color="#fff" />}
         >
           สมัครใหม่
         </Button>
@@ -52,7 +53,7 @@ export default function HomeScreen() {
           mode="contained"
           onPress={() => navigation.navigate('InsuranceForm', { status: 'renewal' })}
           style={styles.button}
-          icon="file-refresh"
+          icon={() => <MaterialCommunityIcons name="file-refresh" size={20} color="#fff" />}
         >
           ต่ออายุ
         </Button>
@@ -61,7 +62,7 @@ export default function HomeScreen() {
           mode="outlined"
           onPress={() => navigation.navigate('CustomerList')}
           style={styles.button}
-          icon="format-list-bulleted"
+          icon={() => <MaterialCommunityIcons name="format-list-bulleted" size={20} color="#2196F3" />}
         >
           ดูรายการลูกค้า
         </Button>
@@ -94,6 +95,9 @@ const styles = StyleSheet.create({
   },
   button: {
     paddingVertical: 8,
+  },
+  primaryButton: {
+    backgroundColor: '#9C27B0',
   },
 });
 

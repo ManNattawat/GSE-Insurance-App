@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { TextInput, Text, Button, Card, Divider } from 'react-native-paper';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 
@@ -196,7 +197,7 @@ export default function QuickQuoteScreen() {
         mode="contained"
         onPress={handleSubmit}
         style={styles.submitButton}
-        icon="send"
+        icon={() => <MaterialCommunityIcons name="send" size={20} color="#fff" />}
       >
         เช็คเบี้ยประกัน
       </Button>

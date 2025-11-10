@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, FlatList, Alert } from 'react-native';
 import { Searchbar, Card, Text, FAB, Button, Menu, ActivityIndicator } from 'react-native-paper';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { exportToCSV } from '../utils/exportData';
@@ -146,7 +147,7 @@ export default function CustomerListScreen() {
           anchor={
             <Button
               mode="contained"
-              icon="download"
+              icon={() => <MaterialCommunityIcons name="download" size={20} color="#fff" />}
               onPress={() => setExportMenuVisible(true)}
               style={styles.exportButton}
               loading={isExporting}
@@ -190,7 +191,7 @@ export default function CustomerListScreen() {
       )}
 
       <FAB
-        icon="plus"
+        icon={() => <MaterialCommunityIcons name="plus" size={24} color="#fff" />}
         style={styles.fab}
         onPress={() => navigation.navigate('InsuranceForm', { status: 'new' })}
       />

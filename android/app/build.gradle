@@ -57,7 +57,7 @@ react {
     // hermesFlags = ["-O", "-output-source-map"]
 
     /* Autolinking */
-    autolinkLibrariesWithApp()
+    // Self-reliant: ไม่ใช้ autolinking ระบุ dependencies เองใน dependencies block
 }
 
 /**
@@ -145,18 +145,24 @@ android {
 }
 
 dependencies {
-    // Self-reliant: ใช้ React Native dependencies โดยตรง
-    // The version of react-native is set by the React Native Gradle Plugin
-    implementation("com.facebook.react:react-android")
-
-    // Enable GIF and WebP support (React Native default)
+    // Self-reliant: ระบุ version ทั้งหมดเอง ไม่พึ่ง plugin ไม่ใช้ autolinking
+    def reactNativeVersion = "0.79.5"
+    
+    // React Native core
+    implementation("com.facebook.react:react-android:$reactNativeVersion")
+    
+    // Enable GIF and WebP support
     implementation("com.facebook.fresco:animated-gif:3.1.3")
     implementation("com.facebook.fresco:webpsupport:3.1.3")
     implementation("com.facebook.fresco:animated-webp:3.1.3")
 
+    // JavaScript engine
     if (hermesEnabled.toBoolean()) {
-        implementation("com.facebook.react:hermes-android")
+        implementation("com.facebook.react:hermes-android:$reactNativeVersion")
     } else {
         implementation jscFlavor
     }
+    
+    // Self-reliant: Packages จะถูก register ใน MainApplication.kt โดยตรง
+    // ไม่ต้องเพิ่ม dependencies ที่นี่ เพราะใช้ native modules จาก node_modules
 }

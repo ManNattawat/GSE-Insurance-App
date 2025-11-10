@@ -19,7 +19,11 @@ web-build/
 *.temp
 
 # Android
-android/
+# android/  # ต้อง commit android folder เพื่อให้ GitHub Actions build ได้
+android/app/build/
+android/app/.cxx/
+android/.gradle/
+android/build/
 *.apk
 *.aab
 *.keystore

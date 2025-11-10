@@ -33,5 +33,5 @@ allprojects {
   }
 }
 
-apply plugin: "expo-root-project"
+// Self-reliant: ลบ Expo plugin ออก ใช้ React Native โดยตรง
 apply plugin: "com.facebook.react.rootproject"

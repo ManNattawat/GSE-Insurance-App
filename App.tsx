@@ -8,6 +8,7 @@ import HomeScreen from './screens/HomeScreen';
 import InsuranceFormScreen from './screens/InsuranceFormScreen';
 import CustomerListScreen from './screens/CustomerListScreen';
 import CustomerDetailScreen from './screens/CustomerDetailScreen';
+import QuickQuoteScreen from './screens/QuickQuoteScreen';
 
 const Stack = createStackNavigator();
 
@@ -32,6 +33,11 @@ export default function App() {
             name="Home" 
             component={HomeScreen}
             options={{ title: 'หน้าแรก' }}
+          />
+          <Stack.Screen 
+            name="QuickQuote" 
+            component={QuickQuoteScreen}
+            options={{ title: 'เช็คเบี้ยประกัน' }}
           />
           <Stack.Screen 
             name="InsuranceForm" 

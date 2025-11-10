@@ -1,8 +1,11 @@
-import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { Card, Text, Button, Divider } from 'react-native-paper';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, ScrollView, Alert } from 'react-native';
+import { Card, Text, Button, Divider, ActivityIndicator } from 'react-native-paper';
 import { useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
+import { getCustomerById } from '../services/policyService';
+import type { CustomerData } from '../types';
+import SummaryStep from '../components/form/SummaryStep';
 
 type RootStackParamList = {
   CustomerDetail: { customerId: string };
@@ -13,55 +16,58 @@ type CustomerDetailScreenRouteProp = RouteProp<RootStackParamList, 'CustomerDeta
 export default function CustomerDetailScreen() {
   const route = useRoute<CustomerDetailScreenRouteProp>();
   const { customerId } = route.params;
+  const [customerData, setCustomerData] = useState<CustomerData | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // TODO: ดึงข้อมูลจาก Supabase ตาม customerId
+  useEffect(() => {
+    loadCustomerData();
+  }, [customerId]);
+
+  const loadCustomerData = async () => {
+    try {
+      setLoading(true);
+      const result = await getCustomerById(customerId);
+      
+      if (result.success && result.data) {
+        setCustomerData(result.data);
+      } else {
+        Alert.alert('เกิดข้อผิดพลาด', result.error || 'ไม่สามารถดึงข้อมูลได้');
+      }
+    } catch (error: any) {
+      Alert.alert('เกิดข้อผิดพลาด', error.message || 'ไม่สามารถดึงข้อมูลได้');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" />
+        <Text variant="bodyMedium" style={styles.loadingText}>
+          กำลังโหลดข้อมูล...
+        </Text>
+      </View>
+    );
+  }
+
+  if (!customerData) {
+    return (
+      <View style={styles.container}>
+        <Card style={styles.card}>
+          <Card.Content>
+            <Text variant="bodyLarge" style={styles.errorText}>
+              ไม่พบข้อมูลลูกค้า
+            </Text>
+          </Card.Content>
+        </Card>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container}>
-      <Card style={styles.card}>
-        <Card.Content>
-          <Text variant="titleLarge" style={styles.sectionTitle}>
-            ข้อมูลส่วนบุคคล
-          </Text>
-          <Divider style={styles.divider} />
-          <Text>ชื่อ-นามสกุล: สมชาย ใจดี</Text>
-          <Text>เลขบัตรประชาชน: 1234567890123</Text>
-          <Text>เบอร์โทร: 0812345678</Text>
-          <Text>อีเมล: example@email.com</Text>
-          <Text>ที่อยู่: 123 ถนนสุขุมวิท กรุงเทพฯ 10110</Text>
-        </Card.Content>
-      </Card>
-
-      <Card style={styles.card}>
-        <Card.Content>
-          <Text variant="titleLarge" style={styles.sectionTitle}>
-            ข้อมูลรถยนต์
-          </Text>
-          <Divider style={styles.divider} />
-          <Text>ยี่ห้อ/รุ่น: Toyota Camry</Text>
-          <Text>ปี: 2020</Text>
-          <Text>เลขทะเบียน: กก-1234</Text>
-          <Text>เลขตัวถัง: ABC123XYZ456</Text>
-        </Card.Content>
-      </Card>
-
-      <Card style={styles.card}>
-        <Card.Content>
-          <Text variant="titleLarge" style={styles.sectionTitle}>
-            ข้อมูลประกันภัย
-          </Text>
-          <Divider style={styles.divider} />
-          <Text>ประเภทประกัน: ชั้น 1</Text>
-          <Text>ทุนประกัน: 1,000,000 บาท</Text>
-          <Text>สถานะ: สมัครใหม่</Text>
-        </Card.Content>
-      </Card>
-
-      <View style={styles.buttonContainer}>
-        <Button mode="contained" icon="file-export">
-          ส่งออก PDF
-        </Button>
-      </View>
+      <SummaryStep data={customerData} />
     </ScrollView>
   );
 }
@@ -84,6 +90,20 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     padding: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+  loadingText: {
+    marginTop: 10,
+    color: '#666',
+  },
+  errorText: {
+    textAlign: 'center',
+    color: '#999',
   },
 });
 

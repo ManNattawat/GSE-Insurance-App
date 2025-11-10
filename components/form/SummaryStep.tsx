@@ -18,6 +18,18 @@ export default function SummaryStep({ data }: Props) {
     return types[type || ''] || type;
   };
 
+  const getVehicleTypeText = (type?: string) => {
+    const types: Record<string, string> = {
+      sedan: 'เก๋ง',
+      pickup4door: 'กระบะ 4 ประตู',
+      pickupHalfCab: 'กระบะตอนครึ่ง',
+      pickupSingleCab: 'กระบะตอนเดียว',
+      van: 'รถตู้',
+      other: 'อื่นๆ',
+    };
+    return types[type || ''] || '-';
+  };
+
   return (
     <ScrollView style={styles.container}>
       <Text variant="headlineSmall" style={styles.title}>
@@ -34,6 +46,7 @@ export default function SummaryStep({ data }: Props) {
           <Text>เลขบัตรประชาชน: {data.personalInfo?.idCard}</Text>
           <Text>เบอร์โทร: {data.personalInfo?.phone}</Text>
           <Text>อีเมล: {data.personalInfo?.email}</Text>
+          <Text>Line ID: {data.personalInfo?.lineId || '-'}</Text>
           <Text>ที่อยู่: {data.personalInfo?.address}</Text>
         </Card.Content>
       </Card>
@@ -47,10 +60,14 @@ export default function SummaryStep({ data }: Props) {
           <Text>ยี่ห้อ/รุ่น: {data.vehicleInfo?.brand} {data.vehicleInfo?.model}</Text>
           <Text>ปี: {data.vehicleInfo?.year}</Text>
           <Text>เลขทะเบียน: {data.vehicleInfo?.licensePlate}</Text>
+          <Text>ประเภทรถ: {getVehicleTypeText(data.vehicleInfo?.vehicleType)} {data.vehicleInfo?.vehicleType === 'other' ? `(${data.vehicleInfo?.vehicleTypeOther})` : ''}</Text>
           <Text>เลขตัวถัง: {data.vehicleInfo?.vin}</Text>
           <Text>สี: {data.vehicleInfo?.color}</Text>
           <Text>ขนาดเครื่องยนต์: {data.vehicleInfo?.engineSize} ซีซี</Text>
           <Text>ประเภทการใช้งาน: {data.vehicleInfo?.usageType === 'personal' ? 'ส่วนบุคคล' : 'พาณิชย์'}</Text>
+          {data.vehicleInfo?.accessories && (
+            <Text>อุปกรณ์ตกแต่ง: {data.vehicleInfo.accessories}</Text>
+          )}
         </Card.Content>
       </Card>
 
@@ -78,6 +95,19 @@ export default function SummaryStep({ data }: Props) {
           <Text>ประเภทประกัน: {getInsuranceTypeText(data.insuranceInfo?.insuranceType)}</Text>
           <Text>ทุนประกัน: {data.insuranceInfo?.coverageAmount} บาท</Text>
           <Text>ระยะเวลา: {data.insuranceInfo?.coveragePeriod} เดือน</Text>
+          <Text>บริษัทประกันเดิม: {data.insuranceInfo?.previousInsuranceCompany || '-'}</Text>
+          <Text>ประเภทประกันเดิม: {getInsuranceTypeText(data.insuranceInfo?.previousInsuranceType)}</Text>
+          <Text>เบี้ยประกันเดิม: {data.insuranceInfo?.previousPremium ? `${data.insuranceInfo.previousPremium} บาท` : '-'}</Text>
+          {data.insuranceInfo?.previousCoverage && (
+            <>
+              <Text style={styles.subtitle}>ความคุ้มครองหลัก (ประกันเดิม):</Text>
+              <Text>  • ซ่อมศูนย์: {data.insuranceInfo.previousCoverage.serviceCenter ? '✓' : '✗'}</Text>
+              <Text>  • อู่: {data.insuranceInfo.previousCoverage.garage ? '✓' : '✗'}</Text>
+              <Text>  • น้ำท่วม: {data.insuranceInfo.previousCoverage.flood ? '✓' : '✗'}</Text>
+              <Text>  • ไฟไหม้: {data.insuranceInfo.previousCoverage.fire ? '✓' : '✗'}</Text>
+            </>
+          )}
+          <Text>วันที่สิ้นสุดความคุ้มครอง: {data.insuranceInfo?.coverageEndDate || '-'}</Text>
           <Text>สถานะ: {data.insuranceInfo?.status === 'new' ? 'สมัครใหม่' : 'ต่ออายุ'}</Text>
           <Text style={styles.subtitle}>ความคุ้มครองเพิ่มเติม:</Text>
           <Text>  • น้ำท่วม: {data.insuranceInfo?.additionalCoverage?.flood ? '✓' : '✗'}</Text>
@@ -86,6 +116,50 @@ export default function SummaryStep({ data }: Props) {
           <Text>  • อุบัติเหตุส่วนบุคคล: {data.insuranceInfo?.additionalCoverage?.personalAccident ? '✓' : '✗'}</Text>
         </Card.Content>
       </Card>
+
+      {(data.insuranceInfo?.proposedInsuranceCompany || data.insuranceInfo?.proposedPremium) && (
+        <Card style={styles.card}>
+          <Card.Content>
+            <Text variant="titleLarge" style={styles.sectionTitle}>
+              แพ็กเกจใหม่ที่เสนอ
+            </Text>
+            <Divider style={styles.divider} />
+            <Text>บริษัทประกันที่เสนอ: {data.insuranceInfo?.proposedInsuranceCompany || '-'}</Text>
+            <Text>เบี้ยประกันที่เสนอ: {data.insuranceInfo?.proposedPremium ? `${data.insuranceInfo.proposedPremium} บาท` : '-'}</Text>
+            {data.insuranceInfo?.proposedHighlights && (
+              <Text>จุดเด่น: {data.insuranceInfo.proposedHighlights}</Text>
+            )}
+            {data.insuranceInfo?.promotionDiscount && (
+              <Text>ส่วนลดโปรโมชั่น: {data.insuranceInfo.promotionDiscount}</Text>
+            )}
+          </Card.Content>
+        </Card>
+      )}
+
+      {data.salespersonInfo && (
+        <Card style={styles.card}>
+          <Card.Content>
+            <Text variant="titleLarge" style={styles.sectionTitle}>
+              ข้อมูลพนักงานขาย
+            </Text>
+            <Divider style={styles.divider} />
+            <Text>ชื่อ-นามสกุล: {data.salespersonInfo?.name || '-'}</Text>
+            <Text>เบอร์โทรศัพท์: {data.salespersonInfo?.phone || '-'}</Text>
+          </Card.Content>
+        </Card>
+      )}
+
+      {data.notes && (
+        <Card style={styles.card}>
+          <Card.Content>
+            <Text variant="titleLarge" style={styles.sectionTitle}>
+              หมายเหตุ
+            </Text>
+            <Divider style={styles.divider} />
+            <Text>{data.notes}</Text>
+          </Card.Content>
+        </Card>
+      )}
 
       <Card style={styles.card}>
         <Card.Content>

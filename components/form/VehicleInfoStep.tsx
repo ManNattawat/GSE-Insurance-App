@@ -39,6 +39,15 @@ export default function VehicleInfoStep({ data, onChange }: Props) {
       />
 
       <TextInput
+        label="รุ่นย่อย"
+        value={data?.subModel || ''}
+        onChangeText={(value) => updateField('subModel', value)}
+        style={styles.input}
+        mode="outlined"
+        placeholder="กรอกรุ่นย่อย (ถ้ามี)"
+      />
+
+      <TextInput
         label="ปีที่ผลิต"
         value={data?.year || ''}
         onChangeText={(value) => updateField('year', value)}
@@ -90,6 +99,35 @@ export default function VehicleInfoStep({ data, onChange }: Props) {
       />
 
       <Text variant="bodyMedium" style={styles.label}>
+        ประเภทรถ
+      </Text>
+      <SegmentedButtons
+        value={data?.vehicleType || 'sedan'}
+        onValueChange={(value) => updateField('vehicleType', value)}
+        buttons={[
+          { value: 'sedan', label: 'เก๋ง' },
+          { value: 'pickup4door', label: 'กระบะ 4 ประตู' },
+          { value: 'pickupHalfCab', label: 'กระบะตอนครึ่ง' },
+          { value: 'pickupSingleCab', label: 'กระบะตอนเดียว' },
+          { value: 'van', label: 'รถตู้' },
+          { value: 'other', label: 'อื่นๆ' },
+        ]}
+        style={styles.segmented}
+        multiSelect={false}
+      />
+
+      {data?.vehicleType === 'other' && (
+        <TextInput
+          label="ระบุประเภทรถ"
+          value={data?.vehicleTypeOther || ''}
+          onChangeText={(value) => updateField('vehicleTypeOther', value)}
+          style={styles.input}
+          mode="outlined"
+          placeholder="กรอกประเภทรถ"
+        />
+      )}
+
+      <Text variant="bodyMedium" style={styles.label}>
         ประเภทการใช้งาน
       </Text>
       <SegmentedButtons
@@ -100,6 +138,17 @@ export default function VehicleInfoStep({ data, onChange }: Props) {
           { value: 'commercial', label: 'พาณิชย์' },
         ]}
         style={styles.segmented}
+      />
+
+      <TextInput
+        label="อุปกรณ์ตกแต่งรถ"
+        value={data?.accessories || ''}
+        onChangeText={(value) => updateField('accessories', value)}
+        style={styles.input}
+        mode="outlined"
+        multiline
+        numberOfLines={3}
+        placeholder="ระบุอุปกรณ์ตกแต่งรถ (ถ้ามี)"
       />
     </View>
   );

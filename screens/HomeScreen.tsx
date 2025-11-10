@@ -6,6 +6,7 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 
 type RootStackParamList = {
   Home: undefined;
+  QuickQuote: undefined;
   InsuranceForm: { status?: 'new' | 'renewal' };
   CustomerList: undefined;
 };
@@ -29,6 +30,15 @@ export default function HomeScreen() {
       </Card>
 
       <View style={styles.buttonContainer}>
+        <Button
+          mode="contained"
+          onPress={() => navigation.navigate('QuickQuote')}
+          style={[styles.button, styles.primaryButton]}
+          icon="calculator"
+        >
+          เช็คเบี้ยประกันฟรี
+        </Button>
+
         <Button
           mode="contained"
           onPress={() => navigation.navigate('InsuranceForm', { status: 'new' })}

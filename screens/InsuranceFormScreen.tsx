@@ -10,8 +10,10 @@ import VehicleInfoStep from '../components/form/VehicleInfoStep';
 import DrivingInfoStep from '../components/form/DrivingInfoStep';
 import InsuranceInfoStep from '../components/form/InsuranceInfoStep';
 import DocumentsStep from '../components/form/DocumentsStep';
+import SalespersonStep from '../components/form/SalespersonStep';
 import SummaryStep from '../components/form/SummaryStep';
 import type { CustomerData } from '../types';
+import { saveCustomer } from '../services/policyService';
 
 type RootStackParamList = {
   InsuranceForm: { status?: 'new' | 'renewal' };
@@ -21,7 +23,7 @@ type RootStackParamList = {
 type InsuranceFormScreenRouteProp = RouteProp<RootStackParamList, 'InsuranceForm'>;
 type InsuranceFormScreenNavigationProp = StackNavigationProp<RootStackParamList, 'InsuranceForm'>;
 
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 7;
 
 export default function InsuranceFormScreen() {
   const route = useRoute<InsuranceFormScreenRouteProp>();
@@ -57,13 +59,37 @@ export default function InsuranceFormScreen() {
   };
 
   const handleSave = async () => {
-    // TODO: บันทึกข้อมูลลง Supabase
-    Alert.alert('สำเร็จ', 'บันทึกข้อมูลลูกค้าเรียบร้อยแล้ว', [
-      {
-        text: 'ตกลง',
-        onPress: () => navigation.navigate('Home'),
-      },
-    ]);
+    try {
+      // ตรวจสอบข้อมูลที่จำเป็น
+      if (!formData.personalInfo?.firstName || !formData.personalInfo?.lastName) {
+        Alert.alert('ข้อมูลไม่ครบ', 'กรุณากรอกชื่อ-นามสกุล');
+        return;
+      }
+      
+      if (!formData.vehicleInfo?.licensePlate) {
+        Alert.alert('ข้อมูลไม่ครบ', 'กรุณากรอกเลขทะเบียนรถ');
+        return;
+      }
+
+      // แสดง loading
+      Alert.alert('กำลังบันทึก...', 'กรุณารอสักครู่');
+
+      // บันทึกข้อมูลลง Supabase
+      const result = await saveCustomer(formData as CustomerData);
+      
+      if (result.success) {
+        Alert.alert('สำเร็จ', 'บันทึกข้อมูลลูกค้าเรียบร้อยแล้ว', [
+          {
+            text: 'ตกลง',
+            onPress: () => navigation.navigate('Home'),
+          },
+        ]);
+      } else {
+        Alert.alert('เกิดข้อผิดพลาด', result.error || 'ไม่สามารถบันทึกข้อมูลได้');
+      }
+    } catch (error: any) {
+      Alert.alert('เกิดข้อผิดพลาด', error.message || 'ไม่สามารถบันทึกข้อมูลได้');
+    }
   };
 
   const updateFormData = (field: keyof CustomerData, value: any) => {
@@ -111,6 +137,15 @@ export default function InsuranceFormScreen() {
           />
         );
       case 6:
+        return (
+          <SalespersonStep
+            data={formData.salespersonInfo}
+            notes={formData.notes}
+            onChange={(data) => updateFormData('salespersonInfo', data)}
+            onNotesChange={(notes) => updateFormData('notes', notes)}
+          />
+        );
+      case 7:
         return <SummaryStep data={formData as CustomerData} />;
       default:
         return null;

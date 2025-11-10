@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, FlatList } from 'react-native';
-import { Searchbar, Card, Text, FAB } from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, FlatList, Alert } from 'react-native';
+import { Searchbar, Card, Text, FAB, Button, Menu, ActivityIndicator } from 'react-native-paper';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
+import { exportToCSV } from '../utils/exportData';
+import type { CustomerData } from '../types';
+import { getAllCustomers, searchCustomers } from '../services/policyService';
 
 type RootStackParamList = {
   CustomerList: undefined;
@@ -12,37 +15,101 @@ type RootStackParamList = {
 
 type CustomerListScreenNavigationProp = StackNavigationProp<RootStackParamList, 'CustomerList'>;
 
-// Mock data - จะแทนที่ด้วยข้อมูลจาก Supabase
-const mockCustomers = [
-  {
-    id: '1',
-    name: 'สมชาย ใจดี',
-    phone: '0812345678',
-    licensePlate: 'กก-1234',
-    insuranceType: 'ชั้น 1',
-    status: 'new',
-  },
-  {
-    id: '2',
-    name: 'สมหญิง รักดี',
-    phone: '0823456789',
-    licensePlate: 'ขข-5678',
-    insuranceType: 'ชั้น 2+',
-    status: 'renewal',
-  },
-];
-
 export default function CustomerListScreen() {
   const navigation = useNavigation<CustomerListScreenNavigationProp>();
   const [searchQuery, setSearchQuery] = useState('');
+  const [exportMenuVisible, setExportMenuVisible] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [customers, setCustomers] = useState<CustomerData[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredCustomers = mockCustomers.filter((customer) =>
-    customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    customer.phone.includes(searchQuery) ||
-    customer.licensePlate.includes(searchQuery)
+  // ดึงข้อมูลลูกค้าจาก Supabase
+  const loadCustomers = async () => {
+    try {
+      setLoading(true);
+      if (searchQuery.trim()) {
+        const result = await searchCustomers(searchQuery);
+        if (result.success) {
+          setCustomers(result.data);
+        } else {
+          Alert.alert('เกิดข้อผิดพลาด', result.error || 'ไม่สามารถค้นหาข้อมูลได้');
+        }
+      } else {
+        const result = await getAllCustomers();
+        if (result.success) {
+          setCustomers(result.data);
+        } else {
+          Alert.alert('เกิดข้อผิดพลาด', result.error || 'ไม่สามารถดึงข้อมูลได้');
+        }
+      }
+    } catch (error: any) {
+      Alert.alert('เกิดข้อผิดพลาด', error.message || 'ไม่สามารถดึงข้อมูลได้');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ดึงข้อมูลเมื่อเปิดหน้าจอ
+  useFocusEffect(
+    React.useCallback(() => {
+      loadCustomers();
+    }, [])
   );
 
-  const renderCustomerItem = ({ item }: { item: typeof mockCustomers[0] }) => (
+  // ค้นหาเมื่อ searchQuery เปลี่ยน
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadCustomers();
+    }, 500); // Debounce 500ms
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // แปลง CustomerData เป็นรูปแบบที่ใช้แสดงใน list
+  const displayCustomers = customers.map((customer) => ({
+    id: customer.id || '',
+    name: `${customer.personalInfo?.firstName || ''} ${customer.personalInfo?.lastName || ''}`.trim() || customer.personalInfo?.phone || 'ไม่มีชื่อ',
+    phone: customer.personalInfo?.phone || '',
+    licensePlate: customer.vehicleInfo?.licensePlate || '',
+    insuranceType: customer.insuranceInfo?.insuranceType === 'class1' ? 'ชั้น 1' : 
+                   customer.insuranceInfo?.insuranceType === 'class2plus' ? 'ชั้น 2+' :
+                   customer.insuranceInfo?.insuranceType === 'class3plus' ? 'ชั้น 3+' : 'ชั้น 3',
+    status: customer.insuranceInfo?.status || 'new',
+  }));
+
+  const filteredCustomers = displayCustomers;
+
+  const handleExportCSV = async () => {
+    try {
+      setIsExporting(true);
+      setExportMenuVisible(false);
+      
+      // ใช้ข้อมูลลูกค้าที่ดึงมาแล้ว
+      if (customers.length === 0) {
+        Alert.alert('ไม่พบข้อมูล', 'ไม่มีข้อมูลลูกค้าที่จะส่งออก');
+        return;
+      }
+
+      // Get current month in Thai
+      const now = new Date();
+      const monthNames = [
+        'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+        'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+      ];
+      const month = monthNames[now.getMonth()];
+      const year = now.getFullYear() + 543; // Convert to Buddhist Era
+      const monthText = `${month} ${year}`;
+
+      await exportToCSV(customers, monthText);
+      Alert.alert('สำเร็จ', 'ส่งออกข้อมูลเรียบร้อยแล้ว');
+    } catch (error: any) {
+      Alert.alert('เกิดข้อผิดพลาด', error.message || 'ไม่สามารถส่งออกข้อมูลได้');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const renderCustomerItem = ({ item }: { item: typeof displayCustomers[0] }) => (
     <Card
       style={styles.card}
       onPress={() => navigation.navigate('CustomerDetail', { customerId: item.id })}
@@ -66,26 +133,61 @@ export default function CustomerListScreen() {
 
   return (
     <View style={styles.container}>
-      <Searchbar
-        placeholder="ค้นหาชื่อ, เบอร์โทร, หรือเลขทะเบียน..."
-        onChangeText={setSearchQuery}
-        value={searchQuery}
-        style={styles.searchbar}
-      />
+      <View style={styles.header}>
+        <Searchbar
+          placeholder="ค้นหาชื่อ, เบอร์โทร, หรือเลขทะเบียน..."
+          onChangeText={setSearchQuery}
+          value={searchQuery}
+          style={styles.searchbar}
+        />
+        <Menu
+          visible={exportMenuVisible}
+          onDismiss={() => setExportMenuVisible(false)}
+          anchor={
+            <Button
+              mode="contained"
+              icon="download"
+              onPress={() => setExportMenuVisible(true)}
+              style={styles.exportButton}
+              loading={isExporting}
+              disabled={isExporting}
+            >
+              ส่งออกข้อมูล
+            </Button>
+          }
+        >
+          <Menu.Item
+            onPress={handleExportCSV}
+            title="ส่งออกเป็น CSV (Excel)"
+            leadingIcon="file-excel"
+          />
+        </Menu>
+      </View>
 
-      <FlatList
-        data={filteredCustomers}
-        renderItem={renderCustomerItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text variant="bodyLarge" style={styles.emptyText}>
-              ไม่พบข้อมูลลูกค้า
-            </Text>
-          </View>
-        }
-      />
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" />
+          <Text variant="bodyMedium" style={styles.loadingText}>
+            กำลังโหลดข้อมูล...
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          data={filteredCustomers}
+          renderItem={renderCustomerItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
+          refreshing={loading}
+          onRefresh={loadCustomers}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text variant="bodyLarge" style={styles.emptyText}>
+                ไม่พบข้อมูลลูกค้า
+              </Text>
+            </View>
+          }
+        />
+      )}
 
       <FAB
         icon="plus"
@@ -101,9 +203,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
   },
-  searchbar: {
-    margin: 10,
+  header: {
+    padding: 10,
+    backgroundColor: '#fff',
     elevation: 2,
+  },
+  searchbar: {
+    marginBottom: 10,
+    elevation: 2,
+  },
+  exportButton: {
+    marginTop: 5,
   },
   listContent: {
     padding: 10,
@@ -138,6 +248,16 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     color: '#999',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+  loadingText: {
+    marginTop: 10,
+    color: '#666',
   },
   fab: {
     position: 'absolute',

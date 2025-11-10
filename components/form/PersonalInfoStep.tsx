@@ -77,6 +77,16 @@ export default function PersonalInfoStep({ data, onChange }: Props) {
         keyboardType="email-address"
         autoCapitalize="none"
       />
+
+      <TextInput
+        label="Line ID (เพื่อการติดตาม)"
+        value={data?.lineId || ''}
+        onChangeText={(value) => updateField('lineId', value)}
+        style={styles.input}
+        mode="outlined"
+        placeholder="เช่น @username หรือ username"
+        autoCapitalize="none"
+      />
     </View>
   );
 }

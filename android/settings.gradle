@@ -14,10 +14,11 @@ plugins {
   id("com.facebook.react.settings")
 }
 
-// Self-reliant: ไม่ใช้ autolinking - ระบุ dependencies เองทั้งหมด
-// แอพนี้เป็นแอพกรอกข้อมูลง่ายๆ - ไม่จำเป็นต้องใช้ autolinking
+// Self-reliant: ต้องเรียก autolinkLibrariesFromCommand() เพื่อ generate PackageList
+// PackageList จำเป็นสำหรับ MainApplication.kt เพื่อ link native modules
+// แต่ไม่ต้องเพิ่ม dependencies ใน build.gradle เพราะ PackageList จะจัดการให้
 extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
-  // ไม่เรียก autolinkLibrariesFromCommand() - ไม่ใช้ autolinking
+  ex.autolinkLibrariesFromCommand() // จำเป็นเพื่อ generate PackageList
 }
 
 rootProject.name = 'GSE Insurance App'

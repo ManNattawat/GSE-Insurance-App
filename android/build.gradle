@@ -12,8 +12,8 @@ buildscript {
   }
   
   // Resolve react-native-gradle-plugin jar file จาก node_modules โดยตรง
-  // ใช้ jar file โดยตรงใน buildscript เพราะ includeBuild ไม่ resolve ให้ buildscript phase
-  // แต่ยังต้องใช้ includeBuild ใน settings.gradle เพื่อ register plugin ให้กับ apply plugin statement
+  // แอพนี้เป็นแอพกรอกข้อมูลง่ายๆ - ใช้ jar file โดยตรงเพื่อลดความซับซ้อน
+  // ไม่ใช้ includeBuild หรือ settings plugin - ตรงไปตรงมา
   def reactNativeGradlePluginJar = new File(
     new File(
       providers.exec {
@@ -32,8 +32,7 @@ buildscript {
     // Self-reliant: ระบุ version ของ Android Gradle Plugin เอง
     classpath("com.android.tools.build:gradle:8.7.3")
     // react-native-gradle-plugin: ใช้ jar file โดยตรงใน buildscript
-    // (includeBuild ใน settings.gradle ไม่ resolve ให้ buildscript phase)
-    // แต่ยังต้องใช้ includeBuild เพื่อ register plugin ให้กับ apply plugin statement
+    // แอพนี้เป็นแอพกรอกข้อมูลง่ายๆ - ใช้ jar file โดยตรงเพื่อลดความซับซ้อน
     classpath(files(reactNativeGradlePluginJar))
     classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
   }
@@ -60,6 +59,6 @@ allprojects {
   }
 }
 
-// Self-reliant: ใช้ rootproject plugin เพื่อให้ React Native plugin ทำงาน
-// (ยังต้องใช้ plugin นี้เพื่อให้ React Native build process ทำงาน)
-apply plugin: "com.facebook.react.rootproject"
+// Self-reliant: ลบ rootproject plugin ออก - แอพนี้เป็นแอพกรอกข้อมูลง่ายๆ ไม่จำเป็นต้องใช้
+// (app/build.gradle ใช้ com.facebook.react plugin แล้ว ซึ่งเพียงพอ)
+// apply plugin: "com.facebook.react.rootproject" // ลบออกเพื่อลดความซับซ้อน

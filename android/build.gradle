@@ -13,12 +13,15 @@ buildscript {
   repositories {
     google()
     mavenCentral()
+    // เพิ่ม maven repository สำหรับ React Native
+    maven {
+      url("https://oss.sonatype.org/content/repositories/snapshots/")
+    }
   }
   dependencies {
     // Self-reliant: ระบุ version ของ Android Gradle Plugin เอง
     classpath("com.android.tools.build:gradle:8.7.3")
-    // react-native-gradle-plugin จะถูก resolve โดย rootproject plugin จาก includeBuild ใน settings.gradle
-    // ไม่ต้องระบุ version เพราะ rootproject plugin จะจัดการให้
+    // react-native-gradle-plugin: ใช้จาก includeBuild ใน settings.gradle (ไม่ระบุ version)
     classpath("com.facebook.react:react-native-gradle-plugin")
     classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
   }

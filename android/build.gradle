@@ -10,19 +10,21 @@ buildscript {
     kotlinVersion = "2.0.21"
     ndkVersion = "26.1.10909125"
   }
+  
   repositories {
     google()
     mavenCentral()
-    // เพิ่ม maven repository สำหรับ React Native
+    // เพิ่ม Maven repository สำหรับ React Native
     maven {
-      url("https://oss.sonatype.org/content/repositories/snapshots/")
+      url("https://repo1.maven.org/maven2/")
     }
   }
   dependencies {
     // Self-reliant: ระบุ version ของ Android Gradle Plugin เอง
     classpath("com.android.tools.build:gradle:8.7.3")
-    // react-native-gradle-plugin: ใช้จาก includeBuild ใน settings.gradle (ไม่ระบุ version)
-    classpath("com.facebook.react:react-native-gradle-plugin")
+    // react-native-gradle-plugin: ระบุ version 0.79.5 จาก Maven Central
+    // (includeBuild ใน settings.gradle ไม่ทำงานใน buildscript phase)
+    classpath("com.facebook.react:react-native-gradle-plugin:0.79.5")
     classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
   }
 }

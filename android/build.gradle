@@ -11,19 +11,6 @@ buildscript {
     ndkVersion = "26.1.10909125"
   }
   
-  // Resolve react-native-gradle-plugin jar file จาก node_modules โดยตรง
-  // แอพนี้เป็นแอพกรอกข้อมูลง่ายๆ - ใช้ jar file โดยตรงเพื่อลดความซับซ้อน
-  // ไม่ใช้ includeBuild หรือ settings plugin - ตรงไปตรงมา
-  def reactNativeGradlePluginJar = new File(
-    new File(
-      providers.exec {
-        workingDir(rootDir)
-        commandLine("node", "--print", "require.resolve('@react-native/gradle-plugin/package.json', { paths: [require.resolve('react-native/package.json')] })")
-      }.standardOutput.asText.get().trim()
-    ).getParentFile(),
-    "react-native-gradle-plugin/build/libs/react-native-gradle-plugin.jar"
-  )
-  
   repositories {
     google()
     mavenCentral()
@@ -31,9 +18,9 @@ buildscript {
   dependencies {
     // Self-reliant: ระบุ version ของ Android Gradle Plugin เอง
     classpath("com.android.tools.build:gradle:8.7.3")
-    // react-native-gradle-plugin: ใช้ jar file โดยตรงใน buildscript
-    // แอพนี้เป็นแอพกรอกข้อมูลง่ายๆ - ใช้ jar file โดยตรงเพื่อลดความซับซ้อน
-    classpath(files(reactNativeGradlePluginJar))
+    // react-native-gradle-plugin: ใช้จาก includeBuild ใน settings.gradle
+    // แอพนี้เป็นแอพกรอกข้อมูลง่ายๆ - ใช้ includeBuild เพื่อ register plugin แต่ไม่ใช้ autolinking
+    classpath("com.facebook.react:react-native-gradle-plugin")
     classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
   }
 }

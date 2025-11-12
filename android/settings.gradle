@@ -1,6 +1,24 @@
-// Self-reliant: แอพนี้เป็นแอพกรอกข้อมูลง่ายๆ - ลดความซับซ้อน
-// ไม่ใช้ includeBuild หรือ settings plugin - ใช้ jar file โดยตรงใน build.gradle
-// ลดการพึ่งพาและควบคุมได้ง่ายขึ้น
+// Self-reliant: แอพนี้เป็นแอพกรอกข้อมูลง่ายๆ - ใช้ includeBuild เพื่อ register plugin
+// แต่ไม่ใช้ autolinking - ระบุ dependencies เองทั้งหมด
+pluginManagement {
+  def reactNativeGradlePlugin = new File(
+    providers.exec {
+      workingDir(rootDir)
+      commandLine("node", "--print", "require.resolve('@react-native/gradle-plugin/package.json', { paths: [require.resolve('react-native/package.json')] })")
+    }.standardOutput.asText.get().trim()
+  ).getParentFile().absolutePath
+  includeBuild(reactNativeGradlePlugin)
+}
+
+plugins {
+  id("com.facebook.react.settings")
+}
+
+// Self-reliant: ไม่ใช้ autolinking - ระบุ dependencies เองทั้งหมด
+// แอพนี้เป็นแอพกรอกข้อมูลง่ายๆ - ไม่จำเป็นต้องใช้ autolinking
+extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
+  // ไม่เรียก autolinkLibrariesFromCommand() - ไม่ใช้ autolinking
+}
 
 rootProject.name = 'GSE Insurance App'
 

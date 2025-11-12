@@ -1,24 +1,5 @@
-// Self-reliant: ระบุ dependencies เองทั้งหมด แต่ต้อง include react-native-gradle-plugin จาก node_modules
-pluginManagement {
-  def reactNativeGradlePlugin = new File(
-    providers.exec {
-      workingDir(rootDir)
-      commandLine("node", "--print", "require.resolve('@react-native/gradle-plugin/package.json', { paths: [require.resolve('react-native/package.json')] })")
-    }.standardOutput.asText.get().trim()
-  ).getParentFile().absolutePath
-  includeBuild(reactNativeGradlePlugin)
-}
-
-plugins {
-  id("com.facebook.react.settings")
-}
-
-// Self-reliant: ต้อง configure extension เพื่อให้ rootproject plugin resolve gradle plugin ได้
-extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
-  // ไม่เรียก autolinkLibrariesFromCommand() เพื่อไม่ใช้ autolinking
-  // แต่ต้อง configure extension เพื่อให้ plugin resolve ได้
-  ex.autolinkLibrariesFromCommand() // ต้องเรียกเพื่อให้ plugin resolve ได้ แต่จะไม่ใช้ autolinking จริงๆ
-}
+// Self-reliant: ไม่ใช้ includeBuild หรือ autolinking - ใช้ jar file โดยตรงจาก build.gradle
+// ลดการพึ่งพาและควบคุมได้ง่ายขึ้น
 
 rootProject.name = 'GSE Insurance App'
 

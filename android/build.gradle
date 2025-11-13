@@ -9,6 +9,7 @@ buildscript {
     targetSdkVersion = 34
     kotlinVersion = "2.0.21"
     ndkVersion = "26.1.10909125"
+    reactNativeVersion = "0.79.5"
   }
   
   repositories {
@@ -18,9 +19,8 @@ buildscript {
   dependencies {
     // Self-reliant: ระบุ version ของ Android Gradle Plugin เอง
     classpath("com.android.tools.build:gradle:8.7.3")
-    // react-native-gradle-plugin: ใช้จาก includeBuild ใน settings.gradle
-    // แอพนี้เป็นแอพกรอกข้อมูลง่ายๆ - ใช้ includeBuild เพื่อ register plugin แต่ไม่ใช้ autolinking
-    classpath("com.facebook.react:react-native-gradle-plugin")
+    // react-native-gradle-plugin: ใช้จาก MavenCentral (เสถียรกว่า resolve jar จาก node_modules)
+    classpath("com.facebook.react:react-native-gradle-plugin:$reactNativeVersion")
     classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
   }
 }
@@ -46,6 +46,6 @@ allprojects {
   }
 }
 
-// Self-reliant: ลบ rootproject plugin ออก - แอพนี้เป็นแอพกรอกข้อมูลง่ายๆ ไม่จำเป็นต้องใช้
-// (app/build.gradle ใช้ com.facebook.react plugin แล้ว ซึ่งเพียงพอ)
-// apply plugin: "com.facebook.react.rootproject" // ลบออกเพื่อลดความซับซ้อน
+// Self-reliant: ใช้ rootproject plugin เพื่อ configure React Native build
+// (includeBuild ใน settings.gradle จะ register plugin ให้)
+apply plugin: "com.facebook.react.rootproject"

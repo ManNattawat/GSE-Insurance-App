@@ -1,13 +1,11 @@
-// Self-reliant: แอพนี้เป็นแอพกรอกข้อมูลง่ายๆ - ใช้ includeBuild เพื่อ register plugin
+// Self-reliant: แอพนี้เป็นแอพกรอกข้อมูลง่ายๆ - ใช้ MavenCentral plugin แทน includeBuild
 // แต่ไม่ใช้ autolinking - ระบุ dependencies เองทั้งหมด
 pluginManagement {
-  def reactNativeGradlePlugin = new File(
-    providers.exec {
-      workingDir(rootDir)
-      commandLine("node", "--print", "require.resolve('@react-native/gradle-plugin/package.json', { paths: [require.resolve('react-native/package.json')] })")
-    }.standardOutput.asText.get().trim()
-  ).getParentFile().absolutePath
-  includeBuild(reactNativeGradlePlugin)
+  repositories {
+    google()
+    mavenCentral()
+    gradlePluginPortal()
+  }
 }
 
 plugins {

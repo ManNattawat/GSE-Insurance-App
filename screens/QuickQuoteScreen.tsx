@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { TextInput, Text, Button, Card, Divider } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
+import AutocompleteInput from '../components/AutocompleteInput';
+import { searchCarBrands, searchCarModels, getBrandById } from '../data/carData';
 import type { RootStackParamList } from '../types';
 
 type QuickQuoteScreenNavigationProp = StackNavigationProp<RootStackParamList, 'QuickQuote'>;
@@ -21,12 +23,52 @@ export default function QuickQuoteScreen() {
     email: '',
   });
 
+  const [brandQuery, setBrandQuery] = useState('');
+  const [modelQuery, setModelQuery] = useState('');
+  const [selectedBrandId, setSelectedBrandId] = useState('');
+  const [availableModels, setAvailableModels] = useState<any[]>([]);
+
   const updateField = (field: string, value: any) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
   };
+
+  const handleBrandSelect = (brand: { id: string; name: string }) => {
+    setBrandQuery(brand.name);
+    setSelectedBrandId(brand.id);
+    updateField('brand', brand.name);
+    
+    // รีเซ็ตรุ่นรถ
+    setModelQuery('');
+    updateField('model', '');
+    updateField('subModel', '');
+    
+    // อัปเดตรายการรุ่นรถ
+    const brandData = getBrandById(brand.id);
+    if (brandData) {
+      setAvailableModels(brandData.models.map(m => ({ id: m.id, name: m.name })));
+    }
+  };
+
+  const handleModelSelect = (model: { id: string; name: string }) => {
+    setModelQuery(model.name);
+    updateField('model', model.name);
+    updateField('subModel', '');
+  };
+
+  const brandOptions = searchCarBrands(brandQuery).map(brand => ({
+    id: brand.id,
+    name: brand.name,
+  }));
+
+  const modelOptions = selectedBrandId 
+    ? searchCarModels(selectedBrandId, modelQuery).map(model => ({
+        id: model.id,
+        name: model.name,
+      }))
+    : [];
 
   const handleSubmit = () => {
     if (!formData.brand || !formData.model || !formData.year || !formData.customerName || !formData.phone) {
@@ -75,22 +117,25 @@ export default function QuickQuoteScreen() {
             ข้อมูลรถยนต์
           </Text>
 
-          <TextInput
+          <AutocompleteInput
             label="ยี่ห้อรถ *"
-            value={formData.brand}
-            onChangeText={(value) => updateField('brand', value)}
+            value={brandQuery}
+            onChangeText={setBrandQuery}
+            onSelect={handleBrandSelect}
+            options={brandOptions}
+            placeholder="พิมพ์เพื่อค้นหา เช่น Toyota, Honda"
             style={styles.input}
-            mode="outlined"
-            placeholder="เช่น Toyota, Honda"
           />
 
-          <TextInput
+          <AutocompleteInput
             label="รุ่นรถ *"
-            value={formData.model}
-            onChangeText={(value) => updateField('model', value)}
+            value={modelQuery}
+            onChangeText={setModelQuery}
+            onSelect={handleModelSelect}
+            options={modelOptions}
+            placeholder={selectedBrandId ? "พิมพ์เพื่อค้นหารุ่นรถ" : "เลือกยี่ห้อรถก่อน"}
+            disabled={!selectedBrandId}
             style={styles.input}
-            mode="outlined"
-            placeholder="เช่น Camry, Civic"
           />
 
           <TextInput

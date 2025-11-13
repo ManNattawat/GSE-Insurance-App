@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { TextInput, Text, Card, Button } from 'react-native-paper';
+import AutocompleteInput from '../AutocompleteInput';
+import { searchCarBrands, searchCarModels, getBrandById, getModelById } from '../../data/carData';
 import type { VehicleInfo } from '../../types';
 
 interface Props {
@@ -9,12 +11,65 @@ interface Props {
 }
 
 export default function VehicleInfoStep({ data, onChange }: Props) {
+  const [brandQuery, setBrandQuery] = useState(data?.brand || '');
+  const [modelQuery, setModelQuery] = useState(data?.model || '');
+  const [selectedBrandId, setSelectedBrandId] = useState('');
+  const [availableModels, setAvailableModels] = useState<any[]>([]);
+
+  useEffect(() => {
+    // หาค่า brand ID จากชื่อที่มีอยู่
+    if (data?.brand) {
+      const brand = searchCarBrands(data.brand).find(b => b.name === data.brand);
+      if (brand) {
+        setSelectedBrandId(brand.id);
+        setAvailableModels(brand.models.map(m => ({ id: m.id, name: m.name })));
+      }
+    }
+  }, [data?.brand]);
+
   const updateField = (field: keyof VehicleInfo, value: any) => {
     onChange({
       ...data,
       [field]: value,
     } as VehicleInfo);
   };
+
+  const handleBrandSelect = (brand: { id: string; name: string }) => {
+    setBrandQuery(brand.name);
+    setSelectedBrandId(brand.id);
+    updateField('brand', brand.name);
+    
+    // รีเซ็ตรุ่นรถเมื่อเปลี่ยนยี่ห้อ
+    setModelQuery('');
+    updateField('model', '');
+    updateField('subModel', '');
+    
+    // อัปเดตรายการรุ่นรถ
+    const brandData = getBrandById(brand.id);
+    if (brandData) {
+      setAvailableModels(brandData.models.map(m => ({ id: m.id, name: m.name })));
+    }
+  };
+
+  const handleModelSelect = (model: { id: string; name: string }) => {
+    setModelQuery(model.name);
+    updateField('model', model.name);
+    
+    // รีเซ็ตรุ่นย่อย
+    updateField('subModel', '');
+  };
+
+  const brandOptions = searchCarBrands(brandQuery).map(brand => ({
+    id: brand.id,
+    name: brand.name,
+  }));
+
+  const modelOptions = selectedBrandId 
+    ? searchCarModels(selectedBrandId, modelQuery).map(model => ({
+        id: model.id,
+        name: model.name,
+      }))
+    : [];
 
   return (
     <Card style={styles.card}>
@@ -23,20 +78,25 @@ export default function VehicleInfoStep({ data, onChange }: Props) {
           ข้อมูลรถยนต์
         </Text>
 
-        <TextInput
+        <AutocompleteInput
           label="ยี่ห้อรถ *"
-          value={data?.brand || ''}
-          onChangeText={(value) => updateField('brand', value)}
+          value={brandQuery}
+          onChangeText={setBrandQuery}
+          onSelect={handleBrandSelect}
+          options={brandOptions}
+          placeholder="พิมพ์เพื่อค้นหา เช่น Toyota, Honda"
           style={styles.input}
-          mode="outlined"
         />
 
-        <TextInput
+        <AutocompleteInput
           label="รุ่นรถ *"
-          value={data?.model || ''}
-          onChangeText={(value) => updateField('model', value)}
+          value={modelQuery}
+          onChangeText={setModelQuery}
+          onSelect={handleModelSelect}
+          options={modelOptions}
+          placeholder={selectedBrandId ? "พิมพ์เพื่อค้นหารุ่นรถ" : "เลือกยี่ห้อรถก่อน"}
+          disabled={!selectedBrandId}
           style={styles.input}
-          mode="outlined"
         />
 
         <TextInput

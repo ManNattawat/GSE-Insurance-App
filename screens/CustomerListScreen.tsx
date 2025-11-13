@@ -4,7 +4,7 @@ import { Searchbar, Card, Text, FAB, Button, ActivityIndicator } from 'react-nat
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
-import { exportToCSV } from '../utils/exportData';
+import { exportToExcel } from '../utils/exportData';
 import type { CustomerData, RootStackParamList } from '../types';
 import { getAllCustomers, searchCustomers } from '../services/policyService';
 
@@ -85,7 +85,7 @@ export default function CustomerListScreen() {
       const year = now.getFullYear() + 543;
       const monthText = `${month} ${year}`;
 
-      await exportToCSV(customers, monthText);
+      await exportToExcel(customers, monthText);
       Alert.alert('สำเร็จ', 'ส่งออกข้อมูลเรียบร้อยแล้ว');
     } catch (error: any) {
       Alert.alert('เกิดข้อผิดพลาด', error.message || 'ไม่สามารถส่งออกข้อมูลได้');
@@ -133,7 +133,7 @@ export default function CustomerListScreen() {
           loading={isExporting}
           disabled={isExporting}
         >
-          ส่งออกข้อมูล CSV
+          ส่งออก Excel
         </Button>
       </View>
 
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     margin: 16,
     right: 0,
-    bottom: 0,
+    bottom: 60, // ยกขึ้นมาจากแถบล่าง
     backgroundColor: '#2196F3',
   },
 });

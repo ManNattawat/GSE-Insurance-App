@@ -1,8 +1,9 @@
 import RNFS from 'react-native-fs';
 import Share from 'react-native-share';
+import { Alert, Platform } from 'react-native';
 import type { CustomerData } from '../types';
 
-export async function exportToCSV(customers: CustomerData[], monthText: string) {
+export async function exportToExcel(customers: CustomerData[], monthText: string) {
   try {
     // สร้าง CSV header
     const headers = [
@@ -38,31 +39,35 @@ export async function exportToCSV(customers: CustomerData[], monthText: string) 
 
     // รวม header และ rows
     const csvContent = [headers, ...rows]
-      .map(row => row.map(field => `"${field}"`).join(','))
+      .map(row => row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(','))
       .join('\n');
 
     // เพิ่ม BOM สำหรับ UTF-8 เพื่อให้ Excel แสดงภาษาไทยได้ถูกต้อง
     const csvWithBOM = '\uFEFF' + csvContent;
 
-    // สร้างชื่อไฟล์
+    // สร้างชื่อไฟล์ Excel
     const fileName = `ลูกค้าประกันภัย_${monthText}.csv`;
-    const filePath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
+    const filePath = Platform.OS === 'android' 
+      ? `${RNFS.DownloadDirectoryPath}/${fileName}`
+      : `${RNFS.DocumentDirectoryPath}/${fileName}`;
 
     // เขียนไฟล์
     await RNFS.writeFile(filePath, csvWithBOM, 'utf8');
 
     // แชร์ไฟล์
     const shareOptions = {
-      title: 'ส่งออกข้อมูลลูกค้า',
-      message: `ข้อมูลลูกค้าประกันภัย ${monthText}`,
-      url: `file://${filePath}`,
-      type: 'text/csv',
+      title: 'ส่งออกข้อมูลลูกค้า Excel',
+      message: `ข้อมูลลูกค้าประกันภัย ${monthText} (เปิดด้วย Excel)`,
+      url: Platform.OS === 'android' ? `file://${filePath}` : filePath,
+      type: 'application/vnd.ms-excel',
+      filename: fileName,
     };
 
     await Share.open(shareOptions);
 
   } catch (error) {
     console.error('Export error:', error);
+    Alert.alert('เกิดข้อผิดพลาด', 'ไม่สามารถส่งออกข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
     throw error;
   }
 }

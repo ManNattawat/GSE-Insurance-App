@@ -200,11 +200,13 @@ const styles = StyleSheet.create({
   footer: {
     backgroundColor: '#fff',
     elevation: 4,
+    paddingBottom: 10, // เพิ่ม padding ล่างเพื่อไม่ให้ถูกแถบบัง
   },
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     padding: 15,
+    paddingBottom: 20, // เพิ่ม padding ล่าง
     gap: 10,
   },
   button: {

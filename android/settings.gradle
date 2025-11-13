@@ -1,22 +1,18 @@
-// Self-reliant: แอพนี้เป็นแอพกรอกข้อมูลง่ายๆ - ใช้ MavenCentral plugin แทน includeBuild
-// แต่ไม่ใช้ autolinking - ระบุ dependencies เองทั้งหมด
 pluginManagement {
-  repositories {
-    google()
-    mavenCentral()
-    gradlePluginPortal()
-  }
+    includeBuild("../node_modules/@react-native/gradle-plugin")
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
 }
 
 plugins {
-  id("com.facebook.react.settings")
+    id("com.facebook.react.settings")
 }
 
-// Self-reliant: ต้องเรียก autolinkLibrariesFromCommand() เพื่อ generate PackageList
-// PackageList จำเป็นสำหรับ MainApplication.kt เพื่อ link native modules
-// แต่ไม่ต้องเพิ่ม dependencies ใน build.gradle เพราะ PackageList จะจัดการให้
-extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
-  ex.autolinkLibrariesFromCommand() // จำเป็นเพื่อ generate PackageList
+extensions.configure(com.facebook.react.ReactSettingsExtension){ react ->
+    react.autolinkLibrariesFromCommand()
 }
 
 rootProject.name = 'GSE Insurance App'

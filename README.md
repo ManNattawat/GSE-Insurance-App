@@ -1,97 +1,96 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# GSE Insurance App
 
-# Getting Started
+แอพพลิเคชันสำหรับเก็บข้อมูลลูกค้าที่ต้องการใช้บริการประกันภัยรถยนต์
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+**สำหรับใช้กับแท็บเล็ต Samsung - ติดตั้งผ่าน APK (ไม่ผ่าน Play Store)**
 
-## Step 1: Start Metro
+## ฟีเจอร์
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+- ✅ กรอกข้อมูลลูกค้าสำหรับการสมัครประกันภัยรถยนต์
+- ✅ Multi-step form (7 ขั้นตอน)
+- ✅ เช็คเบี้ยประกันฟรี (Quick Quote)
+- ✅ ดูรายการลูกค้า
+- ✅ ค้นหาและกรองข้อมูล
+- ✅ ส่งออกข้อมูล CSV สำหรับ Excel
+- ✅ รองรับแท็บเล็ต Samsung (Portrait Mode)
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+## เทคโนโลยี
 
-```sh
-# Using npm
+- React Native 0.79.5
+- TypeScript
+- React Navigation
+- React Native Paper (UI Components)
+- AsyncStorage (Local Storage)
+
+## การติดตั้ง Dependencies
+
+```bash
+npm install
+```
+
+## การพัฒนา (Development)
+
+```bash
+# เริ่ม Metro bundler
 npm start
 
-# OR using Yarn
-yarn start
-```
-
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
-```sh
-# Using npm
+# รันบน Android
 npm run android
-
-# OR using Yarn
-yarn android
 ```
 
-### iOS
+## การ Build APK สำหรับ Samsung Tablet
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+### 🎯 วิธีที่แนะนำ: GitHub Actions (อัตโนมัติ!)
+**Push code ขึ้น GitHub แล้วได้ APK อัตโนมัติ - ไม่ต้อง build เอง!**
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+1. Push code ไปที่ branch `main`
+2. ไปที่ **Actions** tab ใน GitHub
+3. ดาวน์โหลด APK จาก **Artifacts**
 
-```sh
-bundle install
+**ไม่ต้องติดตั้ง Android Studio หรือ build เอง!**
+
+### Local Build (ถ้าจำเป็น):
+```bash
+cd android
+./gradlew assembleRelease
 ```
+APK จะอยู่ที่: `android/app/build/outputs/apk/release/app-release.apk`
 
-Then, and every time you update your native dependencies, run:
+## ข้อมูลที่เก็บ
 
-```sh
-bundle exec pod install
+### 1. ข้อมูลส่วนบุคคล
+- ชื่อ-นามสกุล, บัตรประชาชน, ที่อยู่, เบอร์โทร, อีเมล
+
+### 2. ข้อมูลรถยนต์
+- ยี่ห้อ/รุ่น, ปี, ทะเบียน, VIN, เลขเครื่อง, สี, ซีซี, ประเภทการใช้งาน
+
+### 3. ข้อมูลการขับขี่
+- ประวัติการขับขี่, อุบัติเหตุ, การเคลม, จำนวนผู้ขับขี่, อายุ
+
+### 4. ข้อมูลประกันภัย
+- ประเภทประกัน (ชั้น 1, 2+, 3+, 3), ทุนประกัน, ความคุ้มครองเพิ่มเติม, ระยะเวลา
+
+### 5. เอกสารประกอบ
+- บัตรประชาชน, ทะเบียนรถ, ใบขับขี่, กรมธรรม์เดิม
+
+## ระบบ Navigation
+
+- **Home** → เลือกสมัครใหม่/ต่ออายุ/เช็คเบี้ย
+- **QuickQuote** → เช็คเบี้ยประกันฟรี
+- **InsuranceForm** → กรอกข้อมูล (7 ขั้นตอน)
+- **CustomerList** → รายการลูกค้า
+- **CustomerDetail** → รายละเอียดลูกค้า
+
+## โครงสร้างโปรเจค
+
 ```
-
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
+GSEInsuranceNew/
+├── components/
+│   └── form/           # Form components สำหรับแต่ละขั้นตอน
+├── screens/            # หน้าจอต่างๆ
+├── services/           # Business logic และ data management
+├── types/              # TypeScript type definitions
+├── utils/              # Utility functions
+├── data/               # Static data (บริษัทประกัน)
+└── .github/workflows/  # GitHub Actions สำหรับ auto build
 ```
-
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
-
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
-
-## Step 3: Modify your app
-
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.

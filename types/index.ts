@@ -78,6 +78,18 @@ export interface SalespersonInfo {
   phone?: string;
 }
 
+// ข้อมูลจาก QuickQuote
+export interface QuickQuoteData {
+  brand: string;
+  model: string;
+  subModel?: string;
+  year: string;
+  insuranceType: 'class1' | 'class2plus' | 'class3plus' | 'class3';
+  customerName: string;
+  phone: string;
+  email?: string;
+}
+
 // ข้อมูลลูกค้าครบถ้วน
 export interface CustomerData {
   id?: string;
@@ -96,7 +108,7 @@ export interface CustomerData {
 export type RootStackParamList = {
   Home: undefined;
   QuickQuote: undefined;
-  InsuranceForm: { status?: 'new' | 'renewal'; quickQuoteData?: any };
+  InsuranceForm: { status?: 'new' | 'renewal'; quickQuoteData?: QuickQuoteData };
   CustomerList: undefined;
   CustomerDetail: { customerId: string };
 };

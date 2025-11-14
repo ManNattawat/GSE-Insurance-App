@@ -17,7 +17,7 @@ export default function CustomerListScreen() {
   const [customers, setCustomers] = useState<CustomerData[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const loadCustomers = async () => {
+  const loadCustomers = React.useCallback(async () => {
     try {
       setLoading(true);
       if (searchQuery.trim()) {
@@ -40,12 +40,12 @@ export default function CustomerListScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchQuery]);
 
   useFocusEffect(
     React.useCallback(() => {
       loadCustomers();
-    }, [])
+    }, [loadCustomers])
   );
 
   useEffect(() => {
@@ -54,7 +54,7 @@ export default function CustomerListScreen() {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [searchQuery]);
+  }, [searchQuery, loadCustomers]);
 
   const displayCustomers = customers.map((customer) => ({
     id: customer.id || '',

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Button, Text, ProgressBar, Divider } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -12,7 +12,7 @@ import InsuranceInfoStep from '../components/form/InsuranceInfoStep';
 import DocumentsStep from '../components/form/DocumentsStep';
 import SalespersonStep from '../components/form/SalespersonStep';
 import SummaryStep from '../components/form/SummaryStep';
-import type { CustomerData, RootStackParamList } from '../types';
+import type { CustomerData, RootStackParamList, QuickQuoteData } from '../types';
 import { saveCustomer } from '../services/policyService';
 
 type InsuranceFormScreenRouteProp = RouteProp<RootStackParamList, 'InsuranceForm'>;
@@ -24,20 +24,69 @@ export default function InsuranceFormScreen() {
   const route = useRoute<InsuranceFormScreenRouteProp>();
   const navigation = useNavigation<InsuranceFormScreenNavigationProp>();
   const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState<Partial<CustomerData>>({
-    insuranceInfo: {
-      status: route.params?.status || 'new',
-      insuranceType: 'class1',
-      coverageAmount: '',
-      additionalCoverage: {
-        flood: false,
-        theft: false,
-        medical: false,
-        personalAccident: false,
+  
+  // Initialize form data with quickQuoteData if available
+  const initializeFormData = React.useCallback((quickQuoteData?: QuickQuoteData): Partial<CustomerData> => {
+    const baseData: Partial<CustomerData> = {
+      insuranceInfo: {
+        status: route.params?.status || 'new',
+        insuranceType: quickQuoteData?.insuranceType || 'class1',
+        coverageAmount: '',
+        additionalCoverage: {
+          flood: false,
+          theft: false,
+          medical: false,
+          personalAccident: false,
+        },
+        coveragePeriod: '',
       },
-      coveragePeriod: '',
-    },
-  });
+    };
+
+    // Pre-fill data from QuickQuote
+    if (quickQuoteData) {
+      // Split customerName into firstName and lastName
+      const nameParts = quickQuoteData.customerName.trim().split(/\s+/);
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      baseData.personalInfo = {
+        firstName,
+        lastName,
+        idCard: '',
+        address: '',
+        phone: quickQuoteData.phone,
+        email: quickQuoteData.email || '',
+        lineId: '',
+      };
+
+      baseData.vehicleInfo = {
+        brand: quickQuoteData.brand,
+        model: quickQuoteData.model,
+        subModel: quickQuoteData.subModel || '',
+        year: quickQuoteData.year,
+        licensePlate: '',
+        vin: '',
+        engineNumber: '',
+        color: '',
+        engineSize: '',
+        usageType: 'personal',
+      };
+    }
+
+    return baseData;
+  }, [route.params?.status]);
+
+  const [formData, setFormData] = useState<Partial<CustomerData>>(
+    initializeFormData(route.params?.quickQuoteData)
+  );
+
+  // Update form data when quickQuoteData changes
+  useEffect(() => {
+    if (route.params?.quickQuoteData) {
+      const newData = initializeFormData(route.params.quickQuoteData);
+      setFormData(newData);
+    }
+  }, [route.params?.quickQuoteData, initializeFormData]);
 
   const progress = currentStep / TOTAL_STEPS;
 

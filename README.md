@@ -84,7 +84,7 @@ APK จะอยู่ที่: `android/app/build/outputs/apk/release/app-rele
 ## โครงสร้างโปรเจค
 
 ```
-GSEInsuranceNew/
+GSE-Insurance-App/
 ├── components/
 │   └── form/           # Form components สำหรับแต่ละขั้นตอน
 ├── screens/            # หน้าจอต่างๆ

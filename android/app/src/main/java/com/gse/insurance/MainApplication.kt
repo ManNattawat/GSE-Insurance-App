@@ -1,4 +1,4 @@
-package com.gseinsurancenew
+package com.gse.insurance
 
 import android.app.Application
 import com.facebook.react.PackageList

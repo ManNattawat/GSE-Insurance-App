@@ -24,7 +24,11 @@ class MainApplication : Application(), ReactApplication {
 
         override fun getJSMainModuleName(): String = "index"
 
-        override fun getUseDeveloperSupport(): Boolean = BuildConfig.DEBUG
+        override fun getUseDeveloperSupport(): Boolean {
+            // เปิดใช้งาน Developer Support เพื่อให้เชื่อมต่อกับ Metro Bundler ได้
+            // แม้จะเป็น Release build ก็ตาม (สำหรับการทดสอบ)
+            return true
+        }
 
         override val isNewArchEnabled: Boolean = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
         override val isHermesEnabled: Boolean = BuildConfig.IS_HERMES_ENABLED

@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, BackHandler, Alert } from 'react-native';
 import { Button, Card, Text } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import type { RootStackParamList } from '../types';
 
@@ -10,6 +10,33 @@ type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
 
 export default function HomeScreen() {
   const navigation = useNavigation<HomeScreenNavigationProp>();
+
+  // จัดการปุ่มย้อนกลับที่หน้า Home
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert(
+          'ออกจากแอพ',
+          'คุณต้องการออกจากแอพหรือไม่?',
+          [
+            {
+              text: 'ยกเลิก',
+              style: 'cancel',
+            },
+            {
+              text: 'ออก',
+              onPress: () => BackHandler.exitApp(),
+            },
+          ]
+        );
+        return true; // ป้องกัน default back behavior
+      };
+
+      const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      return () => backHandler.remove();
+    }, [])
+  );
 
   return (
     <View style={styles.container}>
@@ -25,6 +52,14 @@ export default function HomeScreen() {
       </Card>
 
       <View style={styles.buttonContainer}>
+        <Button
+          mode="contained"
+          onPress={() => navigation.navigate('Test')}
+          style={[styles.button, { backgroundColor: '#FF9800' }]}
+          icon={() => <MaterialCommunityIcons name="test-tube" size={20} color="#fff" />}
+        >
+          🧪 หน้าทดสอบ
+        </Button>
         <Button
           mode="contained"
           onPress={() => navigation.navigate('QuickQuote')}
@@ -69,7 +104,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#E3F2FD', // เปลี่ยนเป็นสีฟ้าอ่อน
   },
   card: {
     marginBottom: 20,

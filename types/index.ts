@@ -107,6 +107,7 @@ export interface CustomerData {
 // Navigation Types
 export type RootStackParamList = {
   Home: undefined;
+  Test: undefined;
   QuickQuote: undefined;
   InsuranceForm: { status?: 'new' | 'renewal'; quickQuoteData?: QuickQuoteData };
   CustomerList: undefined;

@@ -52,12 +52,23 @@ export default function AutocompleteInput({
   const handleSelectOption = (option: Option) => {
     onSelect(option);
     setShowDropdown(false);
+    // Blur the input to close keyboard
+    if (onChangeText) {
+      onChangeText(option.name);
+    }
   };
 
   const renderOption = ({ item }: { item: Option }) => (
     <TouchableOpacity
       style={styles.optionItem}
-      onPress={() => handleSelectOption(item)}
+      onPressIn={() => {
+        // Prevent blur from firing
+        setShowDropdown(true);
+      }}
+      onPress={() => {
+        handleSelectOption(item);
+      }}
+      activeOpacity={0.7}
     >
       <Text variant="bodyMedium">{item.name}</Text>
     </TouchableOpacity>
@@ -72,12 +83,13 @@ export default function AutocompleteInput({
         onFocus={() => setShowDropdown(true)}
         onBlur={() => {
           // Delay hiding dropdown to allow selection
-          setTimeout(() => setShowDropdown(false), 200);
+          setTimeout(() => setShowDropdown(false), 300);
         }}
         mode={mode}
         placeholder={placeholder}
         disabled={disabled}
         style={styles.input}
+        blurOnSubmit={false}
       />
       
       {showDropdown && filteredOptions.length > 0 && (
@@ -87,8 +99,9 @@ export default function AutocompleteInput({
             renderItem={renderOption}
             keyExtractor={(item) => item.id}
             style={styles.optionsList}
-            keyboardShouldPersistTaps="handled"
+            keyboardShouldPersistTaps="always"
             nestedScrollEnabled
+            removeClippedSubviews={false}
           />
         </Card>
       )}

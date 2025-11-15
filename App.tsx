@@ -9,6 +9,7 @@ import InsuranceFormScreen from './screens/InsuranceFormScreen';
 import CustomerListScreen from './screens/CustomerListScreen';
 import CustomerDetailScreen from './screens/CustomerDetailScreen';
 import QuickQuoteScreen from './screens/QuickQuoteScreen';
+import TestScreen from './screens/TestScreen';
 import type { RootStackParamList } from './types';
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -28,12 +29,19 @@ export default function App() {
             headerTitleStyle: {
               fontWeight: 'bold',
             },
+            animationEnabled: true,
+            gestureEnabled: true,
           }}
         >
           <Stack.Screen 
             name="Home" 
             component={HomeScreen}
             options={{ title: 'หน้าแรก' }}
+          />
+          <Stack.Screen 
+            name="Test" 
+            component={TestScreen}
+            options={{ title: '🧪 ทดสอบ' }}
           />
           <Stack.Screen 
             name="QuickQuote" 

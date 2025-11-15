@@ -230,7 +230,7 @@ export default function InsuranceFormScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#E3F2FD', // เปลี่ยนเป็นสีฟ้าอ่อน
   },
   header: {
     padding: 20,

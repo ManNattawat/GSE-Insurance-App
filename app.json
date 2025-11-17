@@ -1,26 +1,16 @@
 {
   "expo": {
-    "name": "GSE-Insurance-App",
+    "name": "GSE Enterprise",
     "slug": "GSE-Insurance-App",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "package": "com.gse.insuranceapp",
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "permissions": [
@@ -29,11 +19,10 @@
       ]
     },
     "web": {
-      "favicon": "./assets/favicon.png",
       "bundler": "metro",
       "output": "static",
-      "name": "GSE Insurance App",
-      "shortName": "GSE Insurance",
+      "name": "GSE Enterprise",
+      "shortName": "GSE",
       "lang": "th",
       "scope": "/",
       "themeColor": "#007AFF",

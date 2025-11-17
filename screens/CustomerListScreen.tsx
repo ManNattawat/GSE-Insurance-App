@@ -1,171 +1,91 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, FlatList, Alert } from 'react-native';
-import { Searchbar, Card, Text, FAB, Button, ActivityIndicator } from 'react-native-paper';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
-import { exportToExcel } from '../utils/exportData';
-import type { CustomerData, RootStackParamList } from '../types';
-import { getAllCustomers, searchCustomers } from '../services/policyService';
+import { Card, Text, FAB, ActivityIndicator } from 'react-native-paper';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import type { Customer } from '../types';
 
-type CustomerListScreenNavigationProp = StackNavigationProp<RootStackParamList, 'CustomerList'>;
+const STORAGE_KEY = '@customers';
 
 export default function CustomerListScreen() {
-  const navigation = useNavigation<CustomerListScreenNavigationProp>();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isExporting, setIsExporting] = useState(false);
-  const [customers, setCustomers] = useState<CustomerData[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const loadCustomers = React.useCallback(async () => {
+  const loadCustomers = async () => {
     try {
       setLoading(true);
-      if (searchQuery.trim()) {
-        const result = await searchCustomers(searchQuery);
-        if (result.success) {
-          setCustomers(result.data);
-        } else {
-          Alert.alert('เกิดข้อผิดพลาด', result.error || 'ไม่สามารถค้นหาข้อมูลได้');
-        }
+      const data = await AsyncStorage.getItem(STORAGE_KEY);
+      if (data) {
+        const parsed = JSON.parse(data);
+        // เรียงตามวันที่สร้าง (ใหม่สุดก่อน)
+        parsed.sort((a: Customer, b: Customer) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        setCustomers(parsed);
       } else {
-        const result = await getAllCustomers();
-        if (result.success) {
-          setCustomers(result.data);
-        } else {
-          Alert.alert('เกิดข้อผิดพลาด', result.error || 'ไม่สามารถดึงข้อมูลได้');
-        }
+        setCustomers([]);
       }
-    } catch (error: any) {
-      Alert.alert('เกิดข้อผิดพลาด', error.message || 'ไม่สามารถดึงข้อมูลได้');
+    } catch (error) {
+      Alert.alert('เกิดข้อผิดพลาด', 'ไม่สามารถโหลดข้อมูลได้');
+      console.error('Error loading customers:', error);
     } finally {
       setLoading(false);
     }
-  }, [searchQuery]);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      loadCustomers();
-    }, [loadCustomers])
-  );
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      loadCustomers();
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [searchQuery, loadCustomers]);
-
-  const displayCustomers = customers.map((customer) => ({
-    id: customer.id || '',
-    name: `${customer.personalInfo?.firstName || ''} ${customer.personalInfo?.lastName || ''}`.trim() || customer.personalInfo?.phone || 'ไม่มีชื่อ',
-    phone: customer.personalInfo?.phone || '',
-    licensePlate: customer.vehicleInfo?.licensePlate || '',
-    insuranceType: customer.insuranceInfo?.insuranceType === 'class1' ? 'ชั้น 1' : 
-                   customer.insuranceInfo?.insuranceType === 'class2plus' ? 'ชั้น 2+' :
-                   customer.insuranceInfo?.insuranceType === 'class3plus' ? 'ชั้น 3+' : 'ชั้น 3',
-    status: customer.insuranceInfo?.status || 'new',
-  }));
-
-  const handleExportCSV = async () => {
-    try {
-      setIsExporting(true);
-      
-      if (customers.length === 0) {
-        Alert.alert('ไม่พบข้อมูล', 'ไม่มีข้อมูลลูกค้าที่จะส่งออก');
-        return;
-      }
-
-      const now = new Date();
-      const monthNames = [
-        'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
-        'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
-      ];
-      const month = monthNames[now.getMonth()];
-      const year = now.getFullYear() + 543;
-      const monthText = `${month} ${year}`;
-
-      await exportToExcel(customers, monthText);
-      Alert.alert('สำเร็จ', 'ส่งออกข้อมูลเรียบร้อยแล้ว');
-    } catch (error: any) {
-      Alert.alert('เกิดข้อผิดพลาด', error.message || 'ไม่สามารถส่งออกข้อมูลได้');
-    } finally {
-      setIsExporting(false);
-    }
   };
 
-  const renderCustomerItem = ({ item }: { item: typeof displayCustomers[0] }) => (
-    <Card
-      style={styles.card}
-      onPress={() => navigation.navigate('CustomerDetail', { customerId: item.id })}
-    >
+  useEffect(() => {
+    loadCustomers();
+  }, []);
+
+  const renderCustomer = ({ item }: { item: Customer }) => (
+    <Card style={styles.card}>
       <Card.Content>
         <Text variant="titleMedium">{item.name}</Text>
         <Text variant="bodyMedium" style={styles.subtitle}>
-          {item.phone} • {item.licensePlate}
+          📞 {item.phone}
         </Text>
-        <View style={styles.tagContainer}>
-          <Text variant="labelSmall" style={styles.tag}>
-            {item.insuranceType}
-          </Text>
-          <Text variant="labelSmall" style={[styles.tag, styles.statusTag]}>
-            {item.status === 'new' ? 'สมัครใหม่' : 'ต่ออายุ'}
-          </Text>
-        </View>
+        <Text variant="bodyMedium" style={styles.subtitle}>
+          🚗 {item.licensePlate}
+        </Text>
+        <Text variant="bodySmall" style={styles.insuranceType}>
+          ประกัน: {item.insuranceType}
+        </Text>
+        <Text variant="bodySmall" style={styles.date}>
+          {new Date(item.createdAt).toLocaleDateString('th-TH')}
+        </Text>
       </Card.Content>
     </Card>
   );
 
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" />
+        <Text variant="bodyMedium" style={styles.loadingText}>
+          กำลังโหลดข้อมูล...
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Searchbar
-          placeholder="ค้นหาชื่อ, เบอร์โทร, หรือเลขทะเบียน..."
-          onChangeText={setSearchQuery}
-          value={searchQuery}
-          style={styles.searchbar}
-        />
-        <Button
-          mode="contained"
-          icon={() => <MaterialCommunityIcons name="download" size={20} color="#fff" />}
-          onPress={handleExportCSV}
-          style={styles.exportButton}
-          loading={isExporting}
-          disabled={isExporting}
-        >
-          ส่งออก Excel
-        </Button>
-      </View>
-
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" />
-          <Text variant="bodyMedium" style={styles.loadingText}>
-            กำลังโหลดข้อมูล...
-          </Text>
-        </View>
-      ) : (
-        <FlatList
-          data={displayCustomers}
-          renderItem={renderCustomerItem}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContent}
-          refreshing={loading}
-          onRefresh={loadCustomers}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text variant="bodyLarge" style={styles.emptyText}>
-                ไม่พบข้อมูลลูกค้า
-              </Text>
-            </View>
-          }
-        />
-      )}
-
-      <FAB
-        icon={() => <MaterialCommunityIcons name="plus" size={24} color="#fff" />}
-        style={styles.fab}
-        onPress={() => navigation.navigate('InsuranceForm', { status: 'new' })}
+      <FlatList
+        data={customers}
+        renderItem={renderCustomer}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContent}
+        refreshing={loading}
+        onRefresh={loadCustomers}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text variant="bodyLarge" style={styles.emptyText}>
+              ยังไม่มีข้อมูลลูกค้า
+            </Text>
+            <Text variant="bodyMedium" style={styles.emptySubtext}>
+              กดปุ่ม + เพื่อเพิ่มข้อมูลลูกค้าใหม่
+            </Text>
+          </View>
+        }
       />
     </View>
   );
@@ -174,19 +94,7 @@ export default function CustomerListScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#E3F2FD', // เปลี่ยนเป็นสีฟ้าอ่อน
-  },
-  header: {
-    padding: 10,
-    backgroundColor: '#fff',
-    elevation: 2,
-  },
-  searchbar: {
-    marginBottom: 10,
-    elevation: 2,
-  },
-  exportButton: {
-    marginTop: 5,
+    backgroundColor: '#f5f5f5',
   },
   listContent: {
     padding: 10,
@@ -199,28 +107,15 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 5,
   },
-  tagContainer: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 10,
+  insuranceType: {
+    color: '#2196F3',
+    marginTop: 8,
+    fontWeight: 'bold',
   },
-  tag: {
-    backgroundColor: '#e3f2fd',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    color: '#1976d2',
-  },
-  statusTag: {
-    backgroundColor: '#fff3e0',
-    color: '#f57c00',
-  },
-  emptyContainer: {
-    padding: 40,
-    alignItems: 'center',
-  },
-  emptyText: {
+  date: {
     color: '#999',
+    marginTop: 5,
+    fontStyle: 'italic',
   },
   loadingContainer: {
     flex: 1,
@@ -232,11 +127,15 @@ const styles = StyleSheet.create({
     marginTop: 10,
     color: '#666',
   },
-  fab: {
-    position: 'absolute',
-    margin: 16,
-    right: 0,
-    bottom: 60, // ยกขึ้นมาจากแถบล่าง
-    backgroundColor: '#2196F3',
+  emptyContainer: {
+    padding: 40,
+    alignItems: 'center',
+  },
+  emptyText: {
+    color: '#999',
+    marginBottom: 10,
+  },
+  emptySubtext: {
+    color: '#ccc',
   },
 });

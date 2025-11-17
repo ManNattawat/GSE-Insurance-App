@@ -1,82 +1,50 @@
-name: Build Android APK
+name: Build APK
 
 on:
   push:
-    branches: [ main, master ]
+    branches:
+      - main
+      - master
+    tags:
+      - 'v*'
   pull_request:
-    branches: [ main, master ]
+    branches:
+      - main
+      - master
   workflow_dispatch:
 
 jobs:
   build:
+    name: Build Android APK
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-        cache-dependency-path: 'package-lock.json'
-        
-    - name: Setup Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '17'
-        cache: 'gradle'
-        
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
-        
-    - name: Install dependencies
-      run: npm ci
-        
-    - name: Make gradlew executable
-      run: chmod +x android/gradlew
-        
-    - name: Clean build
-      run: |
-        cd android
-        ./gradlew clean --no-daemon
-        
-    - name: Build Debug APK
-      env:
-        TZ: UTC
-      run: |
-        cd android
-        ./gradlew assembleDebug --no-daemon --no-build-cache --stacktrace || echo "Debug build failed, continuing with release build"
-        
-    - name: Build Release APK
-      env:
-        TZ: UTC
-      run: |
-        cd android
-        ./gradlew assembleRelease --no-daemon --stacktrace
-        
-    - name: Upload Debug APK
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: gse-insurance-app-debug
-        path: android/app/build/outputs/apk/debug/app-debug.apk
-        retention-days: 30
-        if-no-files-found: ignore
-        
-    - name: Upload Release APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: gse-insurance-app-release
-        path: android/app/build/outputs/apk/release/app-release.apk
-        retention-days: 30
-        
-    - name: APK Info
-      run: |
-        echo "=== Debug APK ==="
-        ls -lh android/app/build/outputs/apk/debug/app-debug.apk || echo "Debug APK not found"
-        echo ""
-        echo "=== Release APK ==="
-        ls -lh android/app/build/outputs/apk/release/app-release.apk || echo "Release APK not found"
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+
+      - name: Setup Expo
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build APK with EAS
+        run: eas build --platform android --profile preview --non-interactive --no-wait
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Wait for build to complete
+        run: |
+          echo "Build submitted to EAS. Check the Expo dashboard for build status."
+          echo "APK will be available for download from Expo dashboard once build completes."
+

@@ -29,7 +29,19 @@
       ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "output": "static",
+      "name": "GSE Insurance App",
+      "shortName": "GSE Insurance",
+      "lang": "th",
+      "scope": "/",
+      "themeColor": "#007AFF",
+      "backgroundColor": "#ffffff",
+      "display": "standalone",
+      "orientation": "portrait",
+      "startUrl": "/",
+      "description": "แอปพลิเคชันประกันภัยสำหรับ GSE Insurance"
     }
   }
 }
